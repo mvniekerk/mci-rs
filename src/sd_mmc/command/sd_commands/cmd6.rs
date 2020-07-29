@@ -1,29 +1,3 @@
-//
-// //! \name SD CMD6 argument structure
-// //! @{
-// //! CMD6 arg[ 3: 0] function group 1, access mode
-// #define SD_CMD6_GRP1_HIGH_SPEED (0x1lu << 0)
-// #define SD_CMD6_GRP1_DEFAULT (0x0lu << 0)
-// //! CMD6 arg[ 7: 4] function group 2, command system
-// #define SD_CMD6_GRP2_NO_INFLUENCE (0xFlu << 4)
-// #define SD_CMD6_GRP2_DEFAULT (0x0lu << 4)
-// //! CMD6 arg[11: 8] function group 3, 0xF or 0x0
-// #define SD_CMD6_GRP3_NO_INFLUENCE (0xFlu << 8)
-// #define SD_CMD6_GRP3_DEFAULT (0x0lu << 8)
-// //! CMD6 arg[15:12] function group 4, 0xF or 0x0
-// #define SD_CMD6_GRP4_NO_INFLUENCE (0xFlu << 12)
-// #define SD_CMD6_GRP4_DEFAULT (0x0lu << 12)
-// //! CMD6 arg[19:16] function group 5, 0xF or 0x0
-// #define SD_CMD6_GRP5_NO_INFLUENCE (0xFlu << 16)
-// #define SD_CMD6_GRP5_DEFAULT (0x0lu << 16)
-// //! CMD6 arg[23:20] function group 6, 0xF or 0x0
-// #define SD_CMD6_GRP6_NO_INFLUENCE (0xFlu << 20)
-// #define SD_CMD6_GRP6_DEFAULT (0x0lu << 20)
-// //! CMD6 arg[30:24] reserved 0
-// //! CMD6 arg[31   ] Mode, 0: Check, 1: Switch
-// #define SD_CMD6_MODE_CHECK (0lu << 31)
-// #define SD_CMD6_MODE_SWITCH (1lu << 31)
-
 use bit_field::BitField;
 
 pub struct Cmd6 {

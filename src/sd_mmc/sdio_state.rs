@@ -83,3 +83,33 @@ impl SdioR5State {
         self.val.get_bit(8)
     }
 }
+
+pub struct SdioR6State {
+    pub val: u16
+}
+
+impl SdioR6State {
+    pub fn set_crc_error(&mut self, error: bool) {
+        self.val.set_bit(15, error);
+    }
+
+    pub fn crc_error(&self) -> bool {
+        self.val.get_bit(15)
+    }
+
+    pub fn set_illegal_command(&mut self, error: bool) {
+        self.val.set_bit(14, error);
+    }
+
+    pub fn illegal_command(&self) -> bool {
+        self.val.get_bit(14)
+    }
+
+    pub fn set_r6_error(&mut self, error: bool) {
+        self.val.set_bit(13, error);
+    }
+
+    pub fn r6_error(&self) -> bool {
+        self.val.get_bit(13)
+    }
+}
