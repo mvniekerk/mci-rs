@@ -1,4 +1,4 @@
-pub mod mode;
+pub mod mode_index;
 pub mod command;
 pub mod commands;
 pub mod registers;
