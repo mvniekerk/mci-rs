@@ -11,32 +11,32 @@ pub struct Command<RESP, FLAG, MODE, DEVICE> {
     _response: PhantomData<RESP>,
     _flag: PhantomData<FLAG>,
     _mode: PhantomData<MODE>,
-    _device: PhantomData<DEVICE>
+    _device: PhantomData<DEVICE>,
 }
 
 // Cmd0(bc): Reset all cards to idle state
 pub const SDMMC_SPI_CMD0_GO_IDLE_STATE: Command<CmdR1R6, NoFlag, SpiMode, SdMmcDevice> =
     Command { number: 0, _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
 pub const SDMMC_MCI_CMD0_GO_IDLE_STATE: Command<NoResponse, OpenDrain, MciMode, SdMmcDevice> =
-    Command { number: 0,  _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
+    Command { number: 0, _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
 
 // MMC Cmd1(bcr, R3): Ask the card to send its Operating Conditions
 pub const MMC_SPI_CMD1_SEND_OP_COND: Command<CmdR1R6, NoFlag, SpiMode, MmcDevice> =
-    Command { number: 1,  _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
+    Command { number: 1, _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
 pub const MMC_MCI_CMD1_SEND_OP_COND: Command<CmdR3R4, OpenDrain, MciMode, MmcDevice> =
-    Command { number: 1,  _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
+    Command { number: 1, _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
 
 // Cmd2(bcr, R2): Ask the card to send its CID number (stuff but arg 0 used)
 pub const SDMMC_CMD2_ALL_SEND_CID: Command<CmdR2, OpenDrain, DontCareMode, SdMmcDevice> =
-    Command { number: 2,  _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
+    Command { number: 2, _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
 
 // SD Cmd3(bcr, R6): Ask the card to publish a new relative address (RCA)
 pub const SD_CMD3_SEND_RELATIVE_ADDR: Command<CmdR1R6, OpenDrain, DontCareMode, SdDevice> =
-    Command { number: 3,  _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
+    Command { number: 3, _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
 
 // MMC Cmd3(ac, R1): Assigns relative address to the card
 pub const MMC_CMD3_SET_RELATIVE_ADDR: Command<CmdR1R6, NoFlag, DontCareMode, MmcDevice> =
-    Command { number: 3,  _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
+    Command { number: 3, _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
 
 // Cmd4(bc): Program the DSR of all cards (MCI only)
 pub const SDMMC_CMD4_SET_DSR: Command<NoResponse, NoFlag, DontCareMode, SdMmcDevice> =
@@ -44,7 +44,7 @@ pub const SDMMC_CMD4_SET_DSR: Command<NoResponse, NoFlag, DontCareMode, SdMmcDev
 
 // MMC Cmd5(ac, R1b): Toggle the card between Sleep state and Standby state.
 pub const MMC_CMD5_SLEEP_AWAKE: Command<CmdR1B, NoFlag, DontCareMode, MmcDevice> =
-    Command { number: 5,  _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
+    Command { number: 5, _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
 
 // Cmd7(ac, R1/R1b): Select/Deselect card
 // For SD: R1b only from the selected card.
@@ -97,12 +97,12 @@ pub const SDMMC_MCI_CMD13_SEND_STATUS: Command<CmdR1R6, NoFlag, MciMode, SdMmcDe
 
 // MMC Cmd14(adtc, R1): Read the reversed bus testing data pattern from a card.
 pub const MMC_CMD14_BUSTEST_R: Command<CmdR1R6, NoFlag, DontCareMode, MmcDevice> =
-    Command { number: 14,  _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
+    Command { number: 14, _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
 
 // Cmd15(ac): Send an addressed card into the Inactive State.
 // Note: It is a ac cmd, but it must be send like bc cmd to open drain
 pub const SDMMC_CMD15_GO_INACTIVE_STATE: Command<NoResponse, OpenDrain, DontCareMode, SdMmcDevice> =
-    Command {number: 15, _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
+    Command { number: 15, _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
 
 // MMC Cmd19(adtc, R1): Send the bus test data pattern
 pub const MMC_CMD19_BUSTEST_W: Command<CmdR1R6, NoFlag, DontCareMode, MmcDevice> =
@@ -127,10 +127,10 @@ pub const SDMMC_CMD16_SET_BLOCKLEN: Command<CmdR1R6, NoFlag, DontCareMode, SdMmc
 
 // Cmd17(adtc, R1): Read single block
 pub const SDMMC_CMD17_READ_SINGLE_BLOCK: Command<CmdR1R6, SingleBlock, DontCareMode, SdMmcDevice> =
-    Command { number: 17,  _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
+    Command { number: 17, _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
 // Cmd18(adtc, R1): Read multiple block
 pub const SDMMC_CMD18_READ_MULTIPLE_BLOCK: Command<CmdR1R6, MultiBlock, DontCareMode, SdMmcDevice> =
-    Command { number: 18,  _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
+    Command { number: 18, _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
 
 //
 //  --- Sequential write commands (class 3) ---
@@ -139,7 +139,7 @@ pub const SDMMC_CMD18_READ_MULTIPLE_BLOCK: Command<CmdR1R6, MultiBlock, DontCare
 //  MMC Cmd20(adtc, R1): Write a data stream from the host, starting at the
 //  given address, until a STOP_TRANSMISSION follows.
 pub const MMC_CMD20_WRITE_DAT_UNTIL_STOP: Command<CmdR1R6, NoFlag, DontCareMode, MmcDevice> =
-    Command { number: 20,  _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
+    Command { number: 20, _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };
 
 //
 //  --- Block-oriented write commands (class 4) ---
