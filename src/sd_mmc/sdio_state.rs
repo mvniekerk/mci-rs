@@ -7,14 +7,14 @@ pub enum SdioR5StateValue {
     Reserved = 3
 }
 
-impl From<SdioR5StateValue> for u32 {
+impl From<SdioR5StateValue> for u16 {
     fn from(val: SdioR5StateValue) -> Self {
-        val as u32
+        val as u16
     }
 }
 
-impl From<u32> for SdioR5StateValue {
-    fn from(val: u32) -> Self {
+impl From<u16> for SdioR5StateValue {
+    fn from(val: u16) -> Self {
         match val {
             0 => SdioR5StateValue::Disabled,
             1 => SdioR5StateValue::CmdDatLinesFree,
