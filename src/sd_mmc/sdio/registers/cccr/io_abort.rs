@@ -6,58 +6,74 @@ pub struct IoAbortRegister {
 
 impl IoAbortRegister {
     pub fn set_function1_abort(&mut self, abort: bool) {
-        self.val.set_bit(1, abort);
+        self.val.set_bits(0..2, if abort { 1 } else { 0 });
     }
 
     pub fn function1_abort(&mut self) -> bool {
-        self.val.get_bit(1)
+        self.val.get_bits(0..2) == 1
     }
 
     pub fn set_function2_abort(&mut self, abort: bool) {
-        self.val.set_bit(2, abort);
+        self.val.set_bits(0..2, if abort { 2 } else { 0 });
     }
 
     pub fn function2_abort(&mut self) -> bool {
-        self.val.get_bit(2)
+        self.val.get_bits(0..2) == 2
     }
 
     pub fn set_function3_abort(&mut self, abort: bool) {
-        self.val.set_bit(3, abort);
+        self.val.set_bits(0..2, if abort { 3 } else { 0 });
     }
 
     pub fn function3_abort(&mut self) -> bool {
-        self.val.get_bit(3)
+        self.val.get_bits(0..2) == 3
     }
 
     pub fn set_function4_abort(&mut self, abort: bool) {
-        self.val.set_bit(4, abort);
+        self.val.set_bits(0..2, if abort { 4 } else { 0 });
     }
 
     pub fn function4_abort(&mut self) -> bool {
-        self.val.get_bit(4)
+        self.val.get_bits(0..2) == 4
     }
 
     pub fn set_function5_abort(&mut self, abort: bool) {
-        self.val.set_bit(5, abort);
+        self.val.set_bits(0..2, if abort { 5 } else { 0 });
     }
 
     pub fn function5_abort(&mut self) -> bool {
-        self.val.get_bit(5)
+        self.val.get_bits(0..2) == 5
     }
 
     pub fn set_function6_abort(&mut self, abort: bool) {
-        self.val.set_bit(6, abort);
+        self.val.set_bits(0..2, if abort { 6 } else { 0 });
     }
 
     pub fn function6_abort(&mut self) -> bool {
-        self.val.get_bit(6)
+        self.val.get_bits(0..2) == 6
     }
 
     pub fn set_function7_abort(&mut self, abort: bool) {
-        self.val.set_bit(7, abort);
+        self.val.set_bits(0..2, if abort { 7 } else { 0 });
     }
 
     pub fn function7_abort(&mut self) -> bool {
-        self.val.get_bit(7)
+        self.val.get_bits(0..2) == 7
+    }
+
+    pub fn set_card_reset(&mut self, reset: bool) {
+        self.val.set_bit(3, reset);
+    }
+
+    pub fn card_reset(&self) -> bool {
+        self.val.get_bit(3)
+    }
+
+    pub fn set_abort_select_in_order(&mut self, abort: bool) {
+        self.val.set_bits(0..2, if abort { 7 } else { 0 });
+    }
+
+    pub fn abort_select_in_order(&self) -> bool {
+        self.val.get_bits(0..2) == 7
     }
 }
