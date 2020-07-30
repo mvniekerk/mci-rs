@@ -1,3 +1,4 @@
+pub mod fifo_to_csa;
 pub mod csa_pointer;
 pub mod cis_pointer;
 pub mod power_control;
