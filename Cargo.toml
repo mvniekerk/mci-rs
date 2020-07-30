@@ -1,8 +1,9 @@
 [package]
-name = "atsam_sd_mmc"
-version = "0.1.0"
+name = "atsam_sdio_sdmmc"
+version = "0.0.0"
 authors = ["Michael van Niekerk <mvniekerk@chazaqdev.com>"]
 edition = "2018"
+repository = "https://github.com/mvniekerk/atsam_sdio_sdmmc"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
