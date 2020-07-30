@@ -1,3 +1,4 @@
+pub mod ready_flags;
 pub mod execution_flags;
 pub mod function_select;
 pub mod bus_suspend;
