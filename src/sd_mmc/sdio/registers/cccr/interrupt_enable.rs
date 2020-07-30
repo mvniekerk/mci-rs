@@ -1,10 +1,10 @@
 use bit_field::BitField;
 
-pub struct IoInterruptEnableRegister {
+pub struct InterruptEnableRegister {
     pub val: u8
 }
 
-impl IoInterruptEnableRegister {
+impl InterruptEnableRegister {
     pub fn set_interrupts_enabled(&mut self, enabled: bool) {
         self.val.set_bit(0, enabled);
     }
