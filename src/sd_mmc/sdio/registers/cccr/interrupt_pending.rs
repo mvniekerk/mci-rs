@@ -9,6 +9,10 @@ impl RegisterU8 for InterruptPendingRegister {
     fn value(&self) -> u8 {
         self.val
     }
+
+    fn address() -> u8 {
+        0x05
+    }
 }
 
 impl InterruptPendingRegister {

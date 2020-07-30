@@ -10,6 +10,10 @@ impl RegisterU8 for IoEnableRegister {
     fn value(&self) -> u8 {
         self.val
     }
+
+    fn address() -> u8 {
+        0x04u8
+    }
 }
 
 impl InterruptEnableRegister {

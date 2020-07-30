@@ -9,6 +9,10 @@ impl RegisterU8 for HighSpeedRegister {
     fn value(&self) -> u8 {
         self.val
     }
+
+    fn address() -> u8 {
+        0x13
+    }
 }
 
 impl HighSpeedRegister {

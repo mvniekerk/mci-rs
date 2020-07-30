@@ -9,6 +9,10 @@ impl RegisterU8 for ExecutionFlagsRegister {
     fn value(&self) -> u8 {
         self.val
     }
+
+    fn address() -> u8 {
+        0x0Eu8
+    }
 }
 
 impl ExecutionFlagsRegister {

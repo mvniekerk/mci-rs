@@ -9,6 +9,10 @@ impl RegisterU8 for IoAbortRegister {
     fn value(&self) -> u8 {
         self.val
     }
+
+    fn address() -> u8 {
+        0x06u8
+    }
 }
 
 

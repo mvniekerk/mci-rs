@@ -33,6 +33,10 @@ impl RegisterU8 for SdPhysicalSpecificationRegister {
     fn value(&self) -> u8 {
         self.val
     }
+
+    fn address() -> u8 {
+        0x01u8
+    }
 }
 
 impl SdPhysicalSpecificationRegister {

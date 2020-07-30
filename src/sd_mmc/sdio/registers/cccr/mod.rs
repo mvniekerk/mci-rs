@@ -1,3 +1,5 @@
+pub mod block_size;
+pub mod cis_pointer;
 pub mod high_speed;
 pub mod power_control;
 pub mod ready_flags;

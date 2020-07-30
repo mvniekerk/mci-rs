@@ -39,6 +39,10 @@ impl RegisterU8 for FunctionSelectionRegister {
     fn value(&self) -> u8 {
         self.val
     }
+
+    fn address() -> u8 {
+        0x0Du8
+    }
 }
 
 impl FunctionSelectionRegister {

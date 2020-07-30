@@ -59,6 +59,9 @@ impl RegisterU8 for CccrSdioRevisionRegister {
     fn value(&self) -> u8 {
         self.val
     }
+    fn address() -> u8 {
+        0x00u8
+    }
 }
 
 impl CccrSdioRevisionRegister {

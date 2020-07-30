@@ -9,6 +9,10 @@ impl RegisterU8 for IoReadyRegister {
     fn value(&self) -> u8 {
         self.val
     }
+
+    fn address() -> u8 {
+        0x03u8
+    }
 }
 
 impl IoReadyRegister {

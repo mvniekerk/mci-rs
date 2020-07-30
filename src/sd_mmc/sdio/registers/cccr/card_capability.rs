@@ -10,6 +10,10 @@ impl RegisterU8 for CardCapabilityRegister {
     fn value(&self) -> u8 {
         self.val
     }
+
+    fn address() -> u8 {
+        0x08
+    }
 }
 
 impl CardCapabilityRegister {

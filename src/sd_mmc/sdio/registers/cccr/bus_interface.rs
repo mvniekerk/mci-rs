@@ -27,6 +27,10 @@ impl RegisterU8 for BusInterfaceControlRegister {
     fn value(&self) -> u8 {
         self.val
     }
+
+    fn address() -> u8 {
+        0x07u8
+    }
 }
 
 impl BusInterfaceControlRegister {

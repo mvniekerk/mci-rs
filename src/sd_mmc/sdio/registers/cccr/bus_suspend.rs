@@ -9,6 +9,10 @@ impl RegisterU8 for BusSuspendRegister {
     fn value(&self) -> u8 {
         self.val
     }
+
+    fn address() -> u8 {
+        0x0C
+    }
 }
 
 impl BusSuspendRegister {

@@ -9,6 +9,10 @@ impl RegisterU8 for PowerControlRegister {
     fn value(&self) -> u8 {
         self.val
     }
+
+    fn address() -> u8 {
+        0x12
+    }
 }
 
 impl PowerControlRegister {
