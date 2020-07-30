@@ -1,11 +1,11 @@
 use bit_field::BitField;
-use crate::sd_mmc::sdio::registers::registers::RegisterU8;
+use crate::sd_mmc::sdio::registers::registers::Register;
 
 pub struct ReadyFlagsRegister {
     pub val: u8
 }
 
-impl RegisterU8 for ReadyFlagsRegister {
+impl Register for ReadyFlagsRegister {
     fn value(&self) -> u8 {
         self.val
     }
