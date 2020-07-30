@@ -1,3 +1,4 @@
+pub mod function_select;
 pub mod bus_suspend;
 pub mod card_capability;
 pub mod bus_interface;
