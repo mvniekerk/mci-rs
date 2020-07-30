@@ -1,5 +1,6 @@
 use bit_field::BitField;
 use crate::sd_mmc::mode_index::ModeIndex;
+use std::hint::unreachable_unchecked;
 
 pub struct Cmd6 {
     pub val: u32
@@ -36,7 +37,7 @@ impl From<u32> for BusWidth {
             0 => BusWidth::_1BIT,
             1 => BusWidth::_4BIT,
             2 => BusWidth::_8BIT,
-            _ => unreachable!()
+            _ => unsafe { unreachable_unchecked() }
         }
     }
 }

@@ -1,4 +1,5 @@
 use bit_field::BitField;
+use std::hint::unreachable_unchecked;
 
 pub enum CccrRevision {
     /// CCCR/FBR revision 1.00
@@ -18,7 +19,7 @@ impl From<u8> for CccrRevision {
             1 => CccrRevision::Revision1_10,
             2 => CccrRevision::Revision2_00,
             3 => CccrRevision::Revision3_00,
-            _ => unreachable!()
+            _ => unsafe { unreachable_unchecked() }
         }
     }
 }
@@ -44,7 +45,7 @@ impl From<u8> for SdioSpecification {
             2 => SdioSpecification::Specification1_20,
             3 => SdioSpecification::Specification2_00,
             4 => SdioSpecification::Specification3_00,
-            _ => unreachable!()
+            _ => unsafe { unreachable_unchecked() }
         }
     }
 }

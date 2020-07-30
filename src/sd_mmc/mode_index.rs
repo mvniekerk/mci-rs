@@ -1,3 +1,4 @@
+use std::hint::unreachable_unchecked;
 
 pub enum ModeIndex {
     EraseGroupDef = 0xAF,
@@ -23,7 +24,7 @@ impl From<u32> for ModeIndex {
             0xBB => ModeIndex::PowerClass,
             0xBD => ModeIndex::SetRev,
             0xBF => ModeIndex::Set,
-            _ => unreachable!()
+            _ => unsafe { unreachable_unchecked() }
         }
     }
 }
