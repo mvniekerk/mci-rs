@@ -1,12 +1,12 @@
-use crate::sd_mmc::sdio::registers::registers::Register;
 use bit_field::BitField;
+use crate::sd_mmc::sdio::registers::registers::Register;
 
-/// Address pointer to function CIS (3 bytes, LSB first
-pub struct CisPointerRegister {
+/// Address pointer to CSA, 3 bytes, LSB first
+pub struct CsaPointerRegister {
     pub val: u32
 }
 
-impl CisPointerRegister {
+impl CsaPointerRegister {
     pub fn set_lsb(&mut self, val: u8) {
         self.val.set_bits(16..23, val as u32);
     }
@@ -20,7 +20,7 @@ impl CisPointerRegister {
     }
 }
 
-impl Register<u32> for CisPointerRegister {
+impl Register<u32> for CsaPointerRegister {
     fn value(&self) -> u32 {
         self.val
     }
