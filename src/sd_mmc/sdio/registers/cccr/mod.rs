@@ -1,3 +1,4 @@
+pub mod high_speed;
 pub mod power_control;
 pub mod ready_flags;
 pub mod execution_flags;
