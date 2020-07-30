@@ -73,7 +73,7 @@ impl CsaAndInterfaceCodeRegister {
     }
 }
 
-impl Register for CsaAndInterfaceCodeRegister {
+impl Register<u8> for CsaAndInterfaceCodeRegister {
     fn value(&self) -> u8 {
         self.val
     }

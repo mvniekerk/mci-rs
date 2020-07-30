@@ -24,7 +24,7 @@ impl PowerControlRegister {
     }
 }
 
-impl Register for PowerControlRegister {
+impl Register<u8> for PowerControlRegister {
     fn value(&self) -> u8 {
         self.val
     }
