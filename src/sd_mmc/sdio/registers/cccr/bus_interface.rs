@@ -1,5 +1,6 @@
 use std::hint::unreachable_unchecked;
 use bit_field::BitField;
+use crate::sd_mmc::sdio::registers::registers::RegisterU8;
 
 pub enum BusWidth {
     /// 1-bit data bus
@@ -20,6 +21,12 @@ impl From<u8> for BusWidth {
 
 pub struct BusInterfaceControlRegister {
     pub val: u8
+}
+
+impl RegisterU8 for BusInterfaceControlRegister {
+    fn value(&self) -> u8 {
+        self.val
+    }
 }
 
 impl BusInterfaceControlRegister {

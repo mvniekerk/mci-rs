@@ -1,7 +1,14 @@
 use bit_field::BitField;
+use crate::sd_mmc::sdio::registers::registers::RegisterU8;
 
 pub struct InterruptPendingRegister {
     pub val: u8
+}
+
+impl RegisterU8 for InterruptPendingRegister {
+    fn value(&self) -> u8 {
+        self.val
+    }
 }
 
 impl InterruptPendingRegister {

@@ -1,5 +1,6 @@
 use bit_field::BitField;
 use std::hint::unreachable_unchecked;
+use crate::sd_mmc::sdio::registers::registers::RegisterU8;
 
 pub enum CccrRevision {
     /// CCCR/FBR revision 1.00
@@ -52,6 +53,12 @@ impl From<u8> for SdioSpecification {
 
 pub struct CccrSdioRevisionRegister {
     pub val: u8
+}
+
+impl RegisterU8 for CccrSdioRevisionRegister {
+    fn value(&self) -> u8 {
+        self.val
+    }
 }
 
 impl CccrSdioRevisionRegister {

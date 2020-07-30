@@ -1,8 +1,16 @@
 use bit_field::BitField;
+use crate::sd_mmc::sdio::registers::registers::RegisterU8;
 
 pub struct IoAbortRegister {
     pub val: u8
 }
+
+impl RegisterU8 for IoAbortRegister {
+    fn value(&self) -> u8 {
+        self.val
+    }
+}
+
 
 impl IoAbortRegister {
     pub fn set_function1_abort(&mut self, abort: bool) {

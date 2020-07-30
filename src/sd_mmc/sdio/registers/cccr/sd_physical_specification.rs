@@ -1,5 +1,6 @@
 use std::hint::unreachable_unchecked;
 use bit_field::BitField;
+use crate::sd_mmc::sdio::registers::registers::RegisterU8;
 
 pub enum SdPhysicalSpecification {
     /// SD 1.01 (March 2000)
@@ -26,6 +27,12 @@ impl From<u8> for SdPhysicalSpecification {
 
 pub struct SdPhysicalSpecificationRegister {
     pub val: u8
+}
+
+impl RegisterU8 for SdPhysicalSpecificationRegister {
+    fn value(&self) -> u8 {
+        self.val
+    }
 }
 
 impl SdPhysicalSpecificationRegister {

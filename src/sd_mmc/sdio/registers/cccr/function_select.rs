@@ -1,5 +1,6 @@
 use std::hint::unreachable_unchecked;
 use bit_field::BitField;
+use crate::sd_mmc::sdio::registers::registers::RegisterU8;
 
 pub enum FunctionSelection {
     FunctionCia0 = 0,
@@ -30,8 +31,14 @@ impl From<u8> for FunctionSelection {
     }
 }
 
-struct FunctionSelectionRegister {
+pub struct FunctionSelectionRegister {
     pub val: u8
+}
+
+impl RegisterU8 for FunctionSelectionRegister {
+    fn value(&self) -> u8 {
+        self.val
+    }
 }
 
 impl FunctionSelectionRegister {
