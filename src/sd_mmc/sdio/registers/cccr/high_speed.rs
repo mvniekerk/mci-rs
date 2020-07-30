@@ -5,7 +5,7 @@ pub struct HighSpeedRegister {
     pub val: u8
 }
 
-impl Register for HighSpeedRegister {
+impl Register<u8> for HighSpeedRegister {
     fn value(&self) -> u8 {
         self.val
     }

@@ -6,7 +6,7 @@ pub struct InterruptEnableRegister {
     pub val: u8
 }
 
-impl Register for IoEnableRegister {
+impl Register<u8> for InterruptEnableRegister {
     fn value(&self) -> u8 {
         self.val
     }

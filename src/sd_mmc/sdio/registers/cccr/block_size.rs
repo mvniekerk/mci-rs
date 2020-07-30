@@ -4,7 +4,7 @@ pub struct BlockSize {
     pub val: u8
 }
 
-impl Register for BlockSize {
+impl Register<u8> for BlockSize {
     fn value(&self) -> u8 {
         self.val
     }

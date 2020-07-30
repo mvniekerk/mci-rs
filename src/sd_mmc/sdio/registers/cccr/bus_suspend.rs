@@ -5,7 +5,7 @@ pub struct BusSuspendRegister {
     pub val: u8
 }
 
-impl Register for BusSuspendRegister {
+impl Register<u8> for BusSuspendRegister {
     fn value(&self) -> u8 {
         self.val
     }

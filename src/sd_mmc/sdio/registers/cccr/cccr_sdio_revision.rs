@@ -55,7 +55,7 @@ pub struct CccrSdioRevisionRegister {
     pub val: u8
 }
 
-impl Register for CccrSdioRevisionRegister {
+impl Register<u8> for CccrSdioRevisionRegister {
     fn value(&self) -> u8 {
         self.val
     }

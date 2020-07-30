@@ -5,7 +5,7 @@ pub struct ExecutionFlagsRegister {
     pub val: u8
 }
 
-impl Register for ExecutionFlagsRegister {
+impl Register<u8> for ExecutionFlagsRegister {
     fn value(&self) -> u8 {
         self.val
     }

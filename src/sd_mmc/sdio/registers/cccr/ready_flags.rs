@@ -5,7 +5,7 @@ pub struct ReadyFlagsRegister {
     pub val: u8
 }
 
-impl Register for ReadyFlagsRegister {
+impl Register<u8> for ReadyFlagsRegister {
     fn value(&self) -> u8 {
         self.val
     }

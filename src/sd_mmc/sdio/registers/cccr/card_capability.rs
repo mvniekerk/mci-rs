@@ -6,7 +6,7 @@ pub struct CardCapabilityRegister {
     pub val: u8
 }
 
-impl Register for CardCapabilityRegister {
+impl Register<u8> for CardCapabilityRegister {
     fn value(&self) -> u8 {
         self.val
     }

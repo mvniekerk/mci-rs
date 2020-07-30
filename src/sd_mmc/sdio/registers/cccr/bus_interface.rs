@@ -23,7 +23,7 @@ pub struct BusInterfaceControlRegister {
     pub val: u8
 }
 
-impl Register for BusInterfaceControlRegister {
+impl Register<u8> for BusInterfaceControlRegister {
     fn value(&self) -> u8 {
         self.val
     }
