@@ -1,3 +1,4 @@
+pub mod card_capability;
 pub mod bus_interface;
 pub mod io_abort;
 pub mod io_ready;
