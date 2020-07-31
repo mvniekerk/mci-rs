@@ -1,4 +1,3 @@
-use crate::sd_mmc::registers::registers::Register;
 use bit_field::BitField;
 use crate::sd_mmc::registers::registers::Register;
 

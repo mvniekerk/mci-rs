@@ -1,6 +1,5 @@
 use bit_field::BitField;
 use crate::sd_mmc::registers::registers::Register;
-use crate::sd_mmc::sdio::registers::cccr::io_enable::IoEnableRegister;
 
 pub struct InterruptEnableRegister {
     pub val: u8
