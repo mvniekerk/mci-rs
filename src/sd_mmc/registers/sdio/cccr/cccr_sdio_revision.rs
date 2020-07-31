@@ -1,6 +1,6 @@
 use bit_field::BitField;
 use std::hint::unreachable_unchecked;
-use crate::sd_mmc::sdio::registers::registers::Register;
+use crate::sd_mmc::registers::registers::Register;
 
 pub enum CccrRevision {
     /// CCCR/FBR revision 1.00

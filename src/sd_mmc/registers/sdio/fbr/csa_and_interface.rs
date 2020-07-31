@@ -1,6 +1,6 @@
 use std::hint::unreachable_unchecked;
 use bit_field::BitField;
-use crate::sd_mmc::sdio::registers::registers::Register;
+use crate::sd_mmc::registers::registers::Register;
 
 pub enum SdioInterfaceFunctionCode {
     /// No SDIO standard interface

@@ -1,5 +1,6 @@
-use crate::sd_mmc::sdio::registers::registers::Register;
+use crate::sd_mmc::registers::registers::Register;
 use bit_field::BitField;
+use crate::sd_mmc::registers::registers::Register;
 
 /// Block size, LSB first, 2 bytes
 pub struct BlockSize {
