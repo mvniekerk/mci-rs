@@ -1,4 +1,3 @@
-pub mod sdio;
 pub mod sdio_state;
 pub mod mode_index;
 pub mod command;
