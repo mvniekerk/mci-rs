@@ -24,8 +24,148 @@ impl SwitchStatusRegister {
         self.val.get_bits(496..512) as u16
     }
 
-    pub fn set_grp6_info_status(&mut self, val: u16) {
-        self.val.set_bits(490..496, val as u64);
+    pub fn set_group6_info_status(&mut self, val: u16) {
+        self.val.set_bits(480..496, val as u64);
+    }
+
+    pub fn group6_info_status(&self) -> u16 {
+        self.val.get_bits(480..496) as u16
+    }
+
+    pub fn set_group5_info_status(&mut self, val: u16) {
+        self.val.set_bits(464..480, val as u64);
+    }
+
+    pub fn group5_info_status(&self) -> u16 {
+        self.val.get_bits(464..480) as u16
+    }
+
+    pub fn set_group4_info_status(&mut self, val: u16) {
+        self.val.set_bits(448..464, val as u64);
+    }
+
+    pub fn group4_info_status(&self) -> u16 {
+        self.val.get_bits(448..464) as u16
+    }
+
+    pub fn set_group3_info_status(&mut self, val: u16) {
+        self.val.set_bits(432..448, val as u64);
+    }
+
+    pub fn group3_info_status(&self) -> u16 {
+        self.val.get_bits(432..448) as u16
+    }
+
+    pub fn set_group1_info_status(&mut self, val: u16) {
+        self.val.set_bits(416..432, val as u64);
+    }
+
+    pub fn group1_info_status(&self) -> u16 {
+        self.val.get_bits(416..432) as u16
+    }
+
+    pub fn set_group6_rc(&mut self, val: u8) {
+        self.val.set_bits(396..400, val as u64);
+    }
+
+    pub fn get_group6_rc(&self) -> u8 {
+        self.val.get_bits(396..400) as u8
+    }
+
+    pub fn set_group5_rc(&mut self, val: u8) {
+        self.val.set_bits(392..396, val as u64);
+    }
+
+    pub fn group5_rc(&self) -> u8 {
+        self.val.get_bits(392..396) as u8
+    }
+
+    pub fn set_group4_rc(&mut self, val: u8) {
+        self.val.set_bits(388..392, val as u64);
+    }
+
+    pub fn group4_rc(&self) -> u8 {
+        self.val.get_bits(388..392) as u8
+    }
+
+    pub fn set_group3_rc(&mut self, val: u8) {
+        self.val.set_bits(384..388, val as u64);
+    }
+
+    pub fn group3_rc(&self) -> u8 {
+        self.val.get_bits(384..388) as u8
+    }
+
+    pub fn set_group2_rc(&mut self, val: u8) {
+        self.val.set_bits(380..384, val as u64);
+    }
+
+    pub fn group2_rc(&self) -> u8 {
+        self.val.get_bits(380..384) as u8
+    }
+
+    pub fn set_group1_rc(&mut self, val: u8) {
+        self.val.set_bits(376..380, val as u64);
+    }
+
+    pub fn group1_rc(&self) -> u8 {
+        self.val.get_bits(376..380) as u8
+    }
+
+    pub fn set_structure_version(&mut self, val: u8) {
+        self.val.set_bits(368..376, val as u64);
+    }
+
+    pub fn structure_version(&self) -> u8 {
+        self.val.get_bits(368..376) as u8
+    }
+
+    pub fn set_group6_busy(&mut self, val: u16) {
+        self.val.set_bits(352..368, val as u64);
+    }
+
+    pub fn group6_busy(&self) -> u16 {
+        self.val.get_bits(352..368) as u16
+    }
+
+    pub fn set_group5_busy(&mut self, val: u16) {
+        self.val.set_bits(336..352, val as u64);
+    }
+
+    pub fn group5_busy(&self) -> u16 {
+        self.val.get_bits(336..352) as u16
+    }
+
+    pub fn set_group4_busy(&mut self, val: u16) {
+        self.val.set_bits(320..336, val as u64);
+    }
+
+    pub fn group4_busy(&self) -> u16 {
+        self.val.get_bits(320..336) as u16
+    }
+
+    pub fn set_group3_busy(&mut self, val: u16) {
+        self.val.set_bits(304..320, val as u64);
+    }
+
+    pub fn group3_busy(&self) -> u16 {
+        self.val.get_bits(304..320) as u16
+    }
+
+    pub fn set_group2_busy(&mut self, val: u16) {
+        self.val.set_bits(288..304, val as u64);
+    }
+
+    pub fn group2_busy(&self) -> u16 {
+        self.val.get_bits(288..304) as u16
+    }
+
+    pub fn set_group1_busy(&mut self, val: u16) {
+        self.val.set_bits(272..288, val as u64);
+    }
+
+    pub fn group1_busy(&self) -> u16 {
+        self.val.get_bits(272..288) as u16
     }
 }
 
