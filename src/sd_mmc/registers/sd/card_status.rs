@@ -1,7 +1,6 @@
 use std::hint::unreachable_unchecked;
 use crate::sd_mmc::registers::registers::Register;
 use bit_field::BitField;
-use std::intrinsics::is_nonoverlapping;
 
 pub enum CardStatusState {
     Idle = 0,
