@@ -14,8 +14,8 @@ pub enum CardStatusState {
     Disabled = 8
 }
 
-impl From<u8> for CardStatusState {
-    fn from(val: u8) -> Self {
+impl From<u32> for CardStatusState {
+    fn from(val: u32) -> Self {
         match val {
             0 => CardStatusState::Idle,
             1 => CardStatusState::Ready,
@@ -73,7 +73,7 @@ impl CardStatusRegister {
         self.val.set_bits(9..13, state as u32);
     }
 
-    pub fn state(&self) -> state {
+    pub fn state(&self) -> CardStatusState {
         self.val.get_bits(9..13).into()
     }
 
@@ -190,7 +190,7 @@ impl CardStatusRegister {
     }
 
     pub fn set_erase_sequence_error(&mut self, error: bool) {
-        self.val.set_bit(28);
+        self.val.set_bit(28, error);
     }
 
     pub fn erase_sequence_error(&self) -> bool {

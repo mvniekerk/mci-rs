@@ -14,3 +14,5 @@ impl MmcDeviceType for SdMmcDevice {}
 
 pub struct SdioDevice {}
 impl SdioDeviceType for SdioDevice {}
+impl SdDeviceType for SdioDevice {}
+impl MmcDeviceType for SdioDevice {}
