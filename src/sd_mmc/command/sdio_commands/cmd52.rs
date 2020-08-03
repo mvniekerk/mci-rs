@@ -27,19 +27,19 @@ impl From<Direction> for bool {
 
 impl Cmd52 {
     pub fn set_write_data(&mut self, val: u8) {
-        self.val.set_bits(0..7, val as u32);
+        self.val.set_bits(0..=7, val as u32);
     }
 
     pub fn write_data(&self) -> u8 {
-        self.val.get_bits(0..7) as u8
+        self.val.get_bits(0..=7) as u8
     }
 
     pub fn set_register_address(&mut self, val: u16) {
-        self.val.set_bits(9..25, val as u32);
+        self.val.set_bits(9..=25, val as u32);
     }
 
     pub fn register_address(&self) -> u16 {
-        self.val.get_bits(9..25) as u16
+        self.val.get_bits(9..=25) as u16
     }
 
     pub fn set_read_after_write(&mut self, enabled: bool) {
@@ -51,11 +51,11 @@ impl Cmd52 {
     }
 
     pub fn set_function_number(&mut self, function: u8) {
-        self.val.set_bits(28..30, function as u32);
+        self.val.set_bits(28..=30, function as u32);
     }
 
     pub fn function_number(&self) -> u8 {
-        self.val.get_bits(28..30) as u8
+        self.val.get_bits(28..=30) as u8
     }
 
     pub fn set_direction(&mut self, direction: Direction) {

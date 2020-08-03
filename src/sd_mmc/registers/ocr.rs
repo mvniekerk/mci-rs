@@ -202,12 +202,12 @@ impl OcrRegister {
 
     /// Set access mode - MMC card
     pub fn set_access_mode(&mut self, mode: AccessMode) {
-        self.val.set_bits(29..30, mode as u32);
+        self.val.set_bits(29..=30, mode as u32);
     }
 
     /// Access mode - MMC card
     pub fn access_mode(&self) -> AccessMode {
-        self.val.get_bits(29..30).into()
+        self.val.get_bits(29..=30).into()
     }
 
     /// Set card capacity status bit - SD card

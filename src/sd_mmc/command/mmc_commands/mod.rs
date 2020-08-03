@@ -48,43 +48,43 @@ impl Cmd6 {
     }
 
     pub fn set_access(&mut self, access: Access) {
-        self.val.set_bits(24..25, access as u32);
+        self.val.set_bits(24..=25, access as u32);
     }
 
     pub fn access(&self) -> Access {
-        self.val.get_bits(24..25).into()
+        self.val.get_bits(24..=25).into()
     }
 
     pub fn set_mode_index(&mut self, mode: ModeIndex) {
-        self.val.set_bits(16..23, mode as u32);
+        self.val.set_bits(16..=23, mode as u32);
     }
 
     pub fn mode_index(&self) -> ModeIndex {
-        self.val.get_bits(16..23).into()
+        self.val.get_bits(16..=23).into()
     }
 
     pub fn set_bus_width(&mut self, bus_width: BusWidth) {
-        self.val.set_bits(8..15, bus_width as u32);
+        self.val.set_bits(8..=15, bus_width as u32);
     }
 
     pub fn bus_width(&self) -> BusWidth {
-        self.val.get_bits(8..15).into()
+        self.val.get_bits(8..=15).into()
     }
 
     pub fn set_hs_timing_enable(&mut self, enabled: bool) {
-        self.val.set_bits(8..15, enabled as u32);
+        self.val.set_bits(8..=15, enabled as u32);
     }
 
     pub fn hs_timing_enabled(&self) -> bool {
-        self.val.get_bits(8..15) > 0
+        self.val.get_bits(8..=15) > 0
     }
 
     pub fn set_cmd(&mut self, cmd: u8) {
-        self.val.set_bits(0..2, cmd as u32);
+        self.val.set_bits(0..=2, cmd as u32);
     }
 
     pub fn cmd(&self) -> u8 {
-        self.val.get_bits(0..2) as u8
+        self.val.get_bits(0..=2) as u8
     }
 }
 

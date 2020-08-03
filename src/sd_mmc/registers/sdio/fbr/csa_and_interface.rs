@@ -49,11 +49,11 @@ pub struct CsaAndInterfaceCodeRegister {
 
 impl CsaAndInterfaceCodeRegister {
     pub fn set_interface_code(&mut self, code: SdioInterfaceFunctionCode) {
-        self.val.set_bits(0..3, code as u8);
+        self.val.set_bits(0..=3, code as u8);
     }
 
     pub fn interface_code(&self) -> SdioInterfaceFunctionCode {
-        self.val.get_bits(0..3).into()
+        self.val.get_bits(0..=3).into()
     }
 
     pub fn set_supports_code_storage_area(&mut self, supports: bool) {
