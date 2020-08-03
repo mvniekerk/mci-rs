@@ -8,11 +8,11 @@ pub struct BlockSize {
 
 impl BlockSize {
     pub fn set_lsb(&mut self, val: u8) {
-        self.val.set_bits(8..15, val as u16);
+        self.val.set_bits(8..16, val as u16);
     }
 
     pub fn lsb(&self) -> u8 {
-        self.val.get_bits(8..15) as u8
+        self.val.get_bits(8..16) as u8
     }
 
     pub fn set_msb(&mut self, val: u8) {
