@@ -1,6 +1,6 @@
 use crate::sd_mmc::registers::registers::Register;
 use bit_field::BitField;
-use std::hint::unreachable_unchecked;
+use core::hint::unreachable_unchecked;
 use crate::sd_mmc::sd::sd_physical_specification::SdPhysicalSpecification;
 use crate::sd_mmc::sd::sd_security::SdSecurity;
 use crate::sd_mmc::sd::sd_bus_width::SdBusWidth;

@@ -1,6 +1,6 @@
 use bit_field::BitField;
 use crate::sd_mmc::mode_index::ModeIndex;
-use std::hint::unreachable_unchecked;
+use core::hint::unreachable_unchecked;
 
 pub struct Cmd6 {
     pub val: u32

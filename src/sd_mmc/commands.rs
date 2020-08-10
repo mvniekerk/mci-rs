@@ -1,5 +1,5 @@
-use std::ops::{BitOr, Add};
-use std::marker::PhantomData;
+// use std::ops::{BitOr, Add};
+use core::marker::PhantomData;
 use crate::sd_mmc::command::flags;
 use crate::sd_mmc::command::response_type::{CmdR1R6, NoResponse, CmdR3R4, CmdR2, CmdR1B, CmdR7, CmdR5};
 use crate::sd_mmc::command::device_mode::{SpiMode, MciMode, DontCareMode};

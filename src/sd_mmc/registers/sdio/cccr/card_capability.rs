@@ -1,5 +1,4 @@
 use bit_field::BitField;
-use std::fs::rename;
 use crate::sd_mmc::registers::registers::Register;
 
 pub struct CardCapabilityRegister {

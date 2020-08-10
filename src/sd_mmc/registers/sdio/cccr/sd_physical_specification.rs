@@ -1,4 +1,4 @@
-use std::hint::unreachable_unchecked;
+use core::hint::unreachable_unchecked;
 use bit_field::BitField;
 use crate::sd_mmc::registers::registers::Register;
 use crate::sd_mmc::sd::sd_physical_specification::SdPhysicalSpecification;

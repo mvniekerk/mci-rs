@@ -1,5 +1,4 @@
 use crate::sd_mmc::command::flags::CommandFlags;
-use std::ops::{Deref, BitOr};
 use bit_field::BitField;
 
 // Have response MCI only

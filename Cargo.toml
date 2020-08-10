@@ -21,6 +21,7 @@ optional = true
 
 [features]
 default = []
-atsamd51 = ["rt", "atsamd-hal", "atsamd-hal/samd51j20a", "atsamd-hal/samd51", "unproven"]
+atsamd51j20a = ["atsamd51", "atsamd-hal/samd51j20a"]
+atsamd51 = ["rt", "atsamd-hal", "atsamd-hal/samd51", "unproven"]
 unproven = ["atsamd-hal/unproven"]
 rt = ["cortex-m-rt", "atsamd-hal/samd51j20a-rt"]

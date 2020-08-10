@@ -1,4 +1,4 @@
-use std::hint::unreachable_unchecked;
+use core::hint::unreachable_unchecked;
 
 pub enum SdPhysicalSpecification {
     /// SD 1.01 (March 2000)

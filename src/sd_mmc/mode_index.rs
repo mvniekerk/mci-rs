@@ -1,4 +1,4 @@
-use std::hint::unreachable_unchecked;
+use core::hint::unreachable_unchecked;
 
 pub enum ModeIndex {
     EraseGroupDef = 0xAF,
