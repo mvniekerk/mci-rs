@@ -81,6 +81,64 @@ impl AtsamdMci {
         // Output the clock to the card -- Set SD Clock Enable
         self.sdhc.ccr.modify(|_, w| w.sdclken().set_bit());
     }
+
+
+    /// Send a command
+    pub fn send_command_execute(&mut self, mut cmdr: u16, cmd: u32, arg: u32) -> Result<(), ()> {
+        cmdr.set_bits(8..16, cmd as u16);
+        let cmd: MciCommand = cmd.into();
+
+        if cmd.have_response() {
+            cmdr.set_bits(0..2,
+                          if cmd.have_136bit_response() { 0x1 }
+                          else if cmd.card_may_send_busy() { 0x3 }
+                          else { 0x2 }
+            );
+        }
+
+        self.sdhc.mc1r.modify(|_, w| {
+            if cmd.open_drain_broadcast_command() {
+                w.opd().set_bit()
+            } else {
+                w.opd().clear_bit()
+            }
+        });
+
+        self.sdhc.arg1r.write(|w| unsafe { w.bits(arg) });
+        self.sdhc.cr.write(|w| unsafe { w.bits(cmdr)} );
+
+        loop {
+            let sr = self.sdhc.eister().read();
+            if (
+                sr.cmdteo().bit_is_set() ||
+                    sr.cmdend().bit_is_set() ||
+                    sr.cmdidx().bit_is_set() ||
+                    sr.datteo().bit_is_set() ||
+                    sr.datend().bit_is_set() ||
+                    sr.adma().bit_is_set()
+            ) || (cmd.expect_valid_crc() && (
+                sr.cmdcrc().bit_is_set() ||
+                    sr.datcrc().bit_is_set()
+            )) {
+                self.reset();
+                self.sdhc.eister().write(|w| unsafe { w.bits(0x03FF) } );
+                return Err(())
+            }
+            if self.sdhc.nistr().read().cmdc().bit_is_clear() {
+                break;
+            }
+        }
+
+        if !cmdr.get_bit(5) {
+            self.sdhc.nistr().write(|w| w.cmdc().set_bit());
+        }
+
+        if cmd.card_may_send_busy() {
+            return self.wait_busy();
+        }
+
+        Ok(())
+    }
 }
 
 impl Mci for AtsamdMci {
@@ -104,63 +162,6 @@ impl Mci for AtsamdMci {
 
         self.sdhc.nister().write(|w| unsafe { w.bits(0x01FF) });
         self.sdhc.eister().write(|w| unsafe { w.bits(0x03FF) });
-
-        Ok(())
-    }
-
-    /// Send a command
-    fn send_command(&mut self, mut cmdr: u16, cmd: u32, arg: u32) -> Result<(), ()> {
-        cmdr.set_bits(8..16, cmd as u16);
-        let cmd: MciCommand = cmd.into();
-
-        if cmd.have_response() {
-            cmdr.set_bits(0..2,
-                if cmd.have_136bit_response() { 0x1 }
-                    else if cmd.card_may_send_busy() { 0x3 }
-                    else { 0x2 }
-            );
-        }
-
-        self.sdhc.mc1r.modify(|_, w| {
-            if cmd.open_drain_broadcast_command() {
-                w.opd().set_bit()
-            } else {
-                w.opd().clear_bit()
-            }
-        });
-
-        self.sdhc.arg1r.write(|w| unsafe { w.bits(arg) });
-        self.sdhc.cr.write(|w| unsafe { w.bits(cmdr)} );
-
-        loop {
-            let sr = self.sdhc.eister().read();
-            if (
-                sr.cmdteo().bit_is_set() ||
-                sr.cmdend().bit_is_set() ||
-                sr.cmdidx().bit_is_set() ||
-                sr.datteo().bit_is_set() ||
-                sr.datend().bit_is_set() ||
-                sr.adma().bit_is_set()
-            ) || (cmd.expect_valid_crc() && (
-                sr.cmdcrc().bit_is_set() ||
-                sr.datcrc().bit_is_set()
-            )) {
-                self.reset();
-                self.sdhc.eister().write(|w| unsafe { w.bits(0x03FF) } );
-                return Err(())
-            }
-            if self.sdhc.nistr().read().cmdc().bit_is_clear() {
-                break;
-            }
-        }
-
-        if !cmdr.get_bit(5) {
-            self.sdhc.nistr().write(|w| w.cmdc().set_bit());
-        }
-
-        if cmd.card_may_send_busy() {
-            return self.wait_busy();
-        }
 
         Ok(())
     }
@@ -204,19 +205,37 @@ impl Mci for AtsamdMci {
     }
 
     fn is_high_speed_capable(&self) -> Result<bool, ()> {
-        unimplemented!()
+        Ok(self.sdhc.ca0r.read().hssup().bit_is_set())
     }
 
+    /// Send 74 clock cycles on the line.
+    /// Note: It is required after card plug and before card install.
     fn send_clock(&self) -> Result<(), ()> {
-        unimplemented!()
+        for _m in 0..5000u32 {
+            // Nop
+        }
+        Ok(())
     }
 
-    fn get_response(&self) -> u32 {
-        unimplemented!()
+    fn send_command(&mut self, cmd: u32, arg: u32) -> Result<(), ()> {
+        if self.sdhc.psr.read().cmdinhc().bit_is_set() {
+            return Err(()) // TODO proper error
+        }
+
+        self.sdhc.tmr.modify(|_, w| w.dmaen().clear_bit());
+        self.sdhc.bcr.modify(|_, w| unsafe { w.bits(0) });
+        self.send_command_execute(0, cmd, arg)
     }
 
-    fn get_response127(&self) -> u128 {
-        unimplemented!()
+    fn get_response(&mut self) -> u32 {
+        self.sdhc.rr[0].read().cmdresp().bits()
+    }
+
+    fn get_response128(&self) -> u128 {
+        (self.sdhc.rr[0].read().cmdresp().bits() as u128) +
+        ((self.sdhc.rr[1].read().cmdresp().bits() as u128) << 32) +
+        ((self.sdhc.rr[2].read().cmdresp().bits() as u128) << 64) +
+        ((self.sdhc.rr[3].read().cmdresp().bits() as u128) << 96)
     }
 
     fn adtc_start(&self, command: u32, argument: u32, block_size: u16, block_amount: u16, access_in_blocks: bool) -> Result<(), ()> {
