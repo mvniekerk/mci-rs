@@ -29,6 +29,58 @@ impl AtsamdMci {
         }
         Ok(())
     }
+
+    pub fn set_speed(&mut self, speed: u32, prog_clock_mode: u8) {
+        if self.sdhc.ccr.read().sdclken().bit_is_set() {
+            let mut psr = self.sdhc.psr.read();
+            while psr.cmdinhc().bit_is_set() || psr.cmdinhd().bit_is_set() {
+                psr = self.sdhc.psr.read();
+            }
+        }
+        // let clk_base = CONF_BASE_FREQ;
+        let mut clk_base = self.sdhc.ca0r.read().baseclkf().bits();
+        let clk_mult = self.sdhc.ca1r.read().clkmult().bits();
+        let mut div: u8 = 0;
+
+        // If programmable clock mode is enabled, baseclk is divided by 2
+        if clk_mult > 0 {
+            clk_base /= 2;
+        }
+
+        if prog_clock_mode == 0 {
+            // divided clock mode
+            self.sdhc.ccr.modify(|_, w| w.clkgsel().clear_bit());
+            div = (clk_base / speed) / 2;
+        } else {
+            // programmable clock mode
+            self.sdhc.ccr.modify(|_, w| w.clkgsel().set_bit());
+            // Specific constraint for SDHC/SDMMC IP
+            // speed = Base Clock * Multi Clock / (div+1) */
+            div = (clk_base * (clk_mult + 1)) / speed;
+            div = if div > 0 { div - 1 } else { div };
+        }
+
+        // Specific constraint for SDHC/SDMMC IP
+        // The clock divider (DIV) in SDMMC_CCR must be set to a value different from 0 when HSEN is 1.
+        div = if self.sdhc.hc1r().read().hsen().bit_is_set() && div == 0 { 1 } else { div };
+
+        // Set clock divider
+        self.sdhc.ccr.modify(|_, w|
+            unsafe {
+                w
+                    .sdclkfsel().bits( div & 0xFF)
+                    .usdclkfsel().bits( div >> 8)
+            }
+        );
+
+        self.sdhc.ccr.modify(|_, w| w.intclken().set_bit());
+
+        // Repeat this step until Clock Stable is 1
+        while self.sdhc.ccr.read().intclks().bit_is_clear() {}
+
+        // Output the clock to the card -- Set SD Clock Enable
+        self.sdhc.ccr.modify(|_, w| w.sdclken().set_bit());
+    }
 }
 
 impl Mci for AtsamdMci {
@@ -113,20 +165,42 @@ impl Mci for AtsamdMci {
         Ok(())
     }
 
-    fn deinit(&self) -> Result<(), ()> {
-        unimplemented!()
+    fn deinit(&mut self) -> Result<(), ()> {
+        /// NOP
+        Ok(())
     }
 
-    fn select_device(&self, clock: u32, bus_width: BusWidth, high_speed: bool) -> Result<(), ()> {
-        unimplemented!()
+    fn select_device(&mut self, _slot: u8, clock: u32, bus_width: BusWidth, high_speed: bool) -> Result<(), ()> {
+        self.sdhc.hc1r().modify(|_, w| {
+            if high_speed {
+                w.hsen().set_bit()
+            } else {
+                w.hsen().clear_bit()
+            }
+        });
+
+        if self.sdhc.hc2r().read().pvalen().bit_is_clear() {
+            self.set_speed(clock, 0);
+        }
+
+        match bus_width {
+            BusWidth::_1BIT => self.sdhc.hc1r().modify(|_, w| w.dw().clear_bit()),
+            BusWidth::_4BIT => self.sdhc.hc1r().modify(|_, w| w.dw().set_bit()),
+            _ => return Err(()) // TODO proper error for invalid argument
+        }
+        Ok(())
     }
 
     fn deselect_device(&self) -> Result<(), ()> {
-        unimplemented!()
+        /// NOP
+        Ok(())
     }
 
-    fn get_bus_width(&self) -> Result<BusWidth, ()> {
-        unimplemented!()
+    fn get_bus_width(&self, slot: u8) -> Result<BusWidth, ()> {
+        match slot {
+            0 => Ok(BusWidth::_4BIT),
+            _ => Err(()) // TOD proper error for invalid argument
+        }
     }
 
     fn is_high_speed_capable(&self) -> Result<bool, ()> {

@@ -12,13 +12,17 @@ pub trait Mci {
     fn send_command(&mut self, cmdr: u32, cmd: u32, arg: u32) -> Result<(), ()>;
 
     /// Deinitialize MCI low level driver.
-    fn deinit(&self) -> Result<(), ()>;
+    fn deinit(&mut self) -> Result<(), ()>;
+
     /// Select a device and initialize it
-    fn select_device(&self, clock: u32, bus_width: BusWidth, high_speed: bool) -> Result<(), ()>;
+    fn select_device(&mut self, slot: u8, clock: u32, bus_width: BusWidth, high_speed: bool) -> Result<(), ()>;
+
     /// Deselect device
     fn deselect_device(&self) -> Result<(), ()>;
+
     /// Get the maximum bus width for a device
-    fn get_bus_width(&self) -> Result<BusWidth, ()>;
+    fn get_bus_width(&self, slot: u8) -> Result<BusWidth, ()>;
+
     /// Whether the device is high speed capable
     fn is_high_speed_capable(&self) -> Result<bool, ()>;
     /// Send 74 clock cycles on the line. Required after card plug and install
