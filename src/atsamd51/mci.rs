@@ -1,29 +1,116 @@
 use crate::sd_mmc::mci::Mci;
 use crate::sd_mmc::command::mmc_commands::BusWidth;
+use atsamd_hal::target_device::SDHC0;
+use bit_field::BitField;
+use crate::sd_mmc::command::MciCommand;
 
 pub struct AtsamdMci {
+    sdhc: SDHC0
+}
+
+impl AtsamdMci {
+    pub fn new(sdhc: SDHC0) -> Result<AtsamdMci, ()> {
+        Ok(AtsamdMci{ sdhc })
+    }
+
+    pub fn reset(&mut self) {
+        self.sdhc.srr.modify(|_, w| w.swrstcmd().set_bit());
+    }
+
+    pub fn wait_busy(&mut self) -> Result<(), ()> {
+        for n in (0u32..=0xFFFFFFFFu32).rev() {
+            if n == 0 {
+                self.reset();
+                return Err(())
+            }
+            if self.sdhc.psr.read().datll().bits() == 0x1 {
+                return Ok(())
+            }
+        }
+        Ok(())
+    }
 }
 
 impl Mci for AtsamdMci {
-    fn init(&self) -> Result<(), ()> {
-        // mci_dev->hw = hw;
+    fn init(&mut self) -> Result<(), ()> {
+        self.sdhc.srr.modify(|_, w| w.swrstall().set_bit());
+        loop {
+            if self.sdhc.srr.read().swrstall().bit_is_clear() {
+                break;
+            }
+        }
 
-        // hri_sdhc_set_SRR_SWRSTALL_bit(hw);
-        // while (hri_sdhc_get_SRR_SWRSTALL_bit(hw))
-        // ;
-        //
-        // /* Set the Data Timeout Register to 2 Mega Cycles */
-        // hri_sdhc_write_TCR_reg(hw, SDHC_TCR_DTCVAL(0xE));
-        //
-        // /* Set 3v3 power supply */
-        // hri_sdhc_write_PCR_reg(hw, SDHC_PCR_SDBPWR_ON | SDHC_PCR_SDBVSEL_3V3);
-        //
-        // hri_sdhc_set_NISTER_reg(hw, SDHC_NISTER_MASK);
-        // hri_sdhc_set_EISTER_reg(hw, SDHC_EISTER_MASK);
-        //
-        // return ERR_NONE;
-        unimplemented!()
+        /* Set the Data Timeout Register to 2 Mega Cycles */
+        self.sdhc.tcr.write(|w| unsafe { w.bits(0xe) });
 
+        /* Set 3v3 power supply */
+        self.sdhc.pcr.write(|w|
+            w
+            .sdbpwr().on()
+            .sdbvsel()._3v3()
+        );
+
+        self.sdhc.nister().write(|w| unsafe { w.bits(0x01FF) });
+        self.sdhc.eister().write(|w| unsafe { w.bits(0x03FF) });
+
+        Ok(())
+    }
+
+    /// Send a command
+    fn send_command(&mut self, mut cmdr: u16, cmd: u32, arg: u32) -> Result<(), ()> {
+        cmdr.set_bits(8..16, cmd as u16);
+        let cmd: MciCommand = cmd.into();
+
+        if cmd.have_response() {
+            cmdr.set_bits(0..2,
+                if cmd.have_136bit_response() { 0x1 }
+                    else if cmd.card_may_send_busy() { 0x3 }
+                    else { 0x2 }
+            );
+        }
+
+        self.sdhc.mc1r.modify(|_, w| {
+            if cmd.open_drain_broadcast_command() {
+                w.opd().set_bit()
+            } else {
+                w.opd().clear_bit()
+            }
+        });
+
+        self.sdhc.arg1r.write(|w| unsafe { w.bits(arg) });
+        self.sdhc.cr.write(|w| unsafe { w.bits(cmdr)} );
+
+        loop {
+            let sr = self.sdhc.eister().read();
+            if (
+                sr.cmdteo().bit_is_set() ||
+                sr.cmdend().bit_is_set() ||
+                sr.cmdidx().bit_is_set() ||
+                sr.datteo().bit_is_set() ||
+                sr.datend().bit_is_set() ||
+                sr.adma().bit_is_set()
+            ) || (cmd.expect_valid_crc() && (
+                sr.cmdcrc().bit_is_set() ||
+                sr.datcrc().bit_is_set()
+            )) {
+                self.reset();
+                self.sdhc.eister().write(|w| unsafe { w.bits(0x03FF) } );
+                return Err(())
+            }
+            if self.sdhc.nistr().read().cmdc().bit_is_clear() {
+                break;
+            }
+        }
+
+        if !cmdr.get_bit(5) {
+            self.sdhc.nistr().write(|w| w.cmdc().set_bit());
+        }
+
+        if cmd.card_may_send_busy() {
+            return self.wait_busy();
+        }
+
+        Ok(())
     }
 
     fn deinit(&self) -> Result<(), ()> {

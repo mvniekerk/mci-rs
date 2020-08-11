@@ -2,7 +2,15 @@ use crate::sd_mmc::command::mmc_commands::BusWidth;
 
 pub trait Mci {
     /// Initialize MCI low level driver.
-    fn init(&self) -> Result<(), ()>;
+    fn init(&mut self) -> Result<(), ()>;
+
+    /// Send a command
+    /// # Arguments
+    /// `cmdr` CMDR register bit to use for this command
+    /// `cmd` Command definition
+    /// `arg` Argument of the command
+    fn send_command(&mut self, cmdr: u32, cmd: u32, arg: u32) -> Result<(), ()>;
+
     /// Deinitialize MCI low level driver.
     fn deinit(&self) -> Result<(), ()>;
     /// Select a device and initialize it
