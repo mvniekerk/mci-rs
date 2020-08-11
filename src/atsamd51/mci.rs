@@ -144,6 +144,25 @@ impl AtsamdMci {
 
         Ok(())
     }
+
+    pub fn eistr_err(&mut self) -> Result<(), ()> {
+        let sr = self.sdhc.eistr().read();
+        if sr.datteo().bit_is_set() || sr.datcrc().bit_is_set() || sr.datend().bit_is_set() {
+            self.reset();
+            return Err(()) // TODO proper error
+        }
+        Ok(())
+    }
+
+    pub fn loop_or_on_eistr_err<F: FnMut(&mut AtsamdMci) -> bool>(&mut self, mut f: F) -> Result<(), ()> {
+        loop {
+            self.eistr_err()?;  // TODO proper error
+            if f(self) {
+                break;
+            }
+        }
+        Ok(())
+    }
 }
 
 impl Mci for AtsamdMci {
@@ -302,18 +321,8 @@ impl Mci for AtsamdMci {
         let nbytes: u8 = if ((self.block_size as u64) * (self.block_amount as u64)) - self.trans_pos > 4 { (self.block_size % 4) as u8 } else { 4 };
 
         if self.trans_pos % (self.block_size as u64) == 0 {
-            loop {
-                let sr = self.sdhc.eistr().read();
-                if sr.datteo().bit_is_set() || sr.datcrc().bit_is_set() || sr.datend().bit_is_set() {
-                    self.reset();
-                    return Err(()) // TODO proper error
-                }
-                if self.sdhc.nistr().read().brdrdy().bit_is_set() {
-                    break;
-                }
-            }
+            self.loop_or_on_eistr_err(|f| f.sdhc.nistr().read().brdrdy().bit_is_set())?;
         }
-
 
         // Read data
         let val = self.sdhc.bdpr.read().bits() &
@@ -331,22 +340,29 @@ impl Mci for AtsamdMci {
         }
 
         // Wait end of transfer
-        loop {
-            let sr = self.sdhc.eistr().read();
-            if sr.datteo().bit_is_set() || sr.datcrc().bit_is_set() || sr.datend().bit_is_set() {
-                self.reset();
-                return Err(()) // TODO proper error
-            }
-            if self.sdhc.nistr().read().trfc().bit_is_set() {
-                break;
-            }
-        }
-        self.sdhc.nistr().write(|w| w.trfc().yes());
+        self.loop_or_on_eistr_err(|f| f.sdhc.nistr().read().trfc().bit_is_set())?;
+        self.sdhc.nistr().modify(|_, w| w.trfc().yes());
         Ok(val)
     }
 
-    fn write_word(&self, val: u32) -> Result<bool, ()> {
-        unimplemented!()
+    fn write_word(&mut self, val: u32) -> Result<bool, ()> {
+        let nbytes = 4u64; // self.block_size & 0x3 ? 1 : 4
+        if self.trans_pos % (self.block_size as u64) == 0 {
+            self.loop_or_on_eistr_err(|f| f.sdhc.nistr().read().bwrrdy().bit_is_set())?;
+        }
+
+        // Write data
+        self.sdhc.bdpr.write(|w| unsafe { w.bits(val) });
+        self.trans_pos += nbytes;
+
+        if (self.block_size as u64)*(self.block_amount as u64) > self.trans_pos {
+            return Ok(true)
+        }
+
+        // Wait end of transfer
+        self.loop_or_on_eistr_err(|f| f.sdhc.nistr().read().trfc().bit_is_set());
+        self.sdhc.nistr().modify(|_, w| w.trfc().yes());
+        Ok(true)
     }
 
     fn read_blocks(&self, destination: &mut [u8], number_of_blocks: usize) -> Result<bool, ()> {

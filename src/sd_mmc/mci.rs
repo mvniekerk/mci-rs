@@ -53,7 +53,7 @@ pub trait Mci {
     fn read_word(&mut self) -> Result<u32, ()>;
 
     /// Write a word on the wire
-    fn write_word(&self, val: u32) -> Result<bool, ()>;
+    fn write_word(&mut self, val: u32) -> Result<bool, ()>;
 
     /// Start a read block transfer on the line
     /// # Arguments
