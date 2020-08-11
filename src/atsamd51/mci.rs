@@ -317,7 +317,7 @@ impl Mci for AtsamdMci {
         Ok(())
     }
 
-    fn read_word(&mut self) -> Result<u32, ()> {
+    fn read_word(&mut self) -> Result<(u32, u8), ()> {
         let nbytes: u8 = if ((self.block_size as u64) * (self.block_amount as u64)) - self.trans_pos > 4 { (self.block_size % 4) as u8 } else { 4 };
 
         if self.trans_pos % (self.block_size as u64) == 0 {
@@ -336,13 +336,13 @@ impl Mci for AtsamdMci {
         self.trans_pos += nbytes as u64;
 
         if (self.block_size as u64)*(self.block_amount as u64) > self.trans_pos {
-            return Ok(val)
+            return Ok((val, nbytes))
         }
 
         // Wait end of transfer
         self.loop_or_on_eistr_err(|f| f.sdhc.nistr().read().trfc().bit_is_set())?;
         self.sdhc.nistr().modify(|_, w| w.trfc().yes());
-        Ok(val)
+        Ok((val, nbytes))
     }
 
     fn write_word(&mut self, val: u32) -> Result<bool, ()> {
@@ -365,8 +365,24 @@ impl Mci for AtsamdMci {
         Ok(true)
     }
 
-    fn read_blocks(&self, destination: &mut [u8], number_of_blocks: usize) -> Result<bool, ()> {
-        unimplemented!()
+    fn read_blocks(&mut self, destination: &mut [u8], number_of_blocks: usize) -> Result<bool, ()> {
+        let mut data = (number_of_blocks as u64) * (self.block_size as u64);
+        let mut index = 0usize;
+
+        while data > 0 {
+            let (val, nbytes) = self.read_word()?;
+            for m in 0..nbytes {
+                let mm = m as usize;
+                if mm + index >= number_of_blocks {
+                    break;
+                }
+                destination[index + m] = val.get_bits((m*8)..((m+1)*8)) as u8;
+            }
+            let nbytes = if (nbytes as u64) > data { (self.block_size % (nbytes as u16)) as u8 } else { nbytes };
+            index += nbytes;
+            data -= nbytes;
+        }
+        Ok(true)
     }
 
     fn write_blocks(&self, data: &[u8], number_of_blocks: usize) -> Result<bool, ()> {
@@ -374,10 +390,12 @@ impl Mci for AtsamdMci {
     }
 
     fn wait_until_read_finished(&self) -> Result<(), ()> {
-        unimplemented!()
+        // Nop
+        Ok(())
     }
 
     fn wait_until_write_finished(&self) -> Result<(), ()> {
-        unimplemented!()
+        // Nop
+        Ok(())
     }
 }

@@ -50,7 +50,7 @@ pub trait Mci {
     fn adtc_stop(&self, command: u32, argument: u32) -> Result<(), ()>;
 
     /// Read a word on the wire
-    fn read_word(&mut self) -> Result<u32, ()>;
+    fn read_word(&mut self) -> Result<(u32, u8), ()>;
 
     /// Write a word on the wire
     fn write_word(&mut self, val: u32) -> Result<bool, ()>;
@@ -59,7 +59,7 @@ pub trait Mci {
     /// # Arguments
     ///  * `destination` Buffer to write to
     ///  * `number_of_blocks` Number of blocks to read
-    fn read_blocks(&self, destination: &mut [u8], number_of_blocks: usize) -> Result<bool, ()>;
+    fn read_blocks(&mut self, destination: &mut [u8], number_of_blocks: usize) -> Result<bool, ()>;
 
     /// Start a write block transfer on the line
     /// # Arguments
