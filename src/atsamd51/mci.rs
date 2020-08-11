@@ -366,27 +366,49 @@ impl Mci for AtsamdMci {
     }
 
     fn read_blocks(&mut self, destination: &mut [u8], number_of_blocks: usize) -> Result<bool, ()> {
+
         let mut data = (number_of_blocks as u64) * (self.block_size as u64);
+        let len = data as usize;
         let mut index = 0usize;
 
         while data > 0 {
             let (val, nbytes) = self.read_word()?;
             for m in 0..nbytes {
                 let mm = m as usize;
-                if mm + index >= number_of_blocks {
+                if mm + index >= len {
                     break;
                 }
-                destination[index + m] = val.get_bits((m*8)..((m+1)*8)) as u8;
+                destination[index + mm] = val.get_bits((mm*8)..((mm+1)*8)) as u8;
             }
             let nbytes = if (nbytes as u64) > data { (self.block_size % (nbytes as u16)) as u8 } else { nbytes };
-            index += nbytes;
-            data -= nbytes;
+            index += nbytes as usize;
+            data -= nbytes as u64;
         }
         Ok(true)
     }
 
-    fn write_blocks(&self, data: &[u8], number_of_blocks: usize) -> Result<bool, ()> {
-        unimplemented!()
+    fn write_blocks(&mut self, write_data: &[u8], number_of_blocks: usize) -> Result<bool, ()> {
+        let mut data = (number_of_blocks as u64) * (self.block_size as u64);
+        let mut len = data as usize;
+        let mut index = 0usize;
+
+        while data > 0 {
+            let mut nbytes = 0u8;
+            let mut val = 0u32;
+            for m in 0..4 {
+                let mm = m as usize;
+                if (m as usize) + index >= len {
+                    break;
+                }
+                val <<= 8;
+                nbytes += 1;
+                val |= write_data[index + mm] as u32;
+            }
+            self.write_word(val)?;
+            data -= nbytes as u64;
+            index += nbytes as usize;
+        }
+        Ok(true)
     }
 
     fn wait_until_read_finished(&self) -> Result<(), ()> {
