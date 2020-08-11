@@ -8,7 +8,7 @@ use atsamd_hal::target_device::sdhc0::tmr::DTDSEL_A;
 
 pub struct AtsamdMci {
     sdhc: SDHC0,
-    trans_pos: u32,
+    trans_pos: u64,
     block_size: u16,
     block_amount: u16
 }
@@ -294,11 +294,55 @@ impl Mci for AtsamdMci {
     }
 
     fn adtc_stop(&self, command: u32, argument: u32) -> Result<(), ()> {
-        unimplemented!()
+        // Nop
+        Ok(())
     }
 
-    fn read_word(&self) -> Result<u32, ()> {
-        unimplemented!()
+    fn read_word(&mut self) -> Result<u32, ()> {
+        let nbytes: u8 = if ((self.block_size as u64) * (self.block_amount as u64)) - self.trans_pos > 4 { (self.block_size % 4) as u8 } else { 4 };
+
+        if self.trans_pos % (self.block_size as u64) == 0 {
+            loop {
+                let sr = self.sdhc.eistr().read();
+                if sr.datteo().bit_is_set() || sr.datcrc().bit_is_set() || sr.datend().bit_is_set() {
+                    self.reset();
+                    return Err(()) // TODO proper error
+                }
+                if self.sdhc.nistr().read().brdrdy().bit_is_set() {
+                    break;
+                }
+            }
+        }
+
+
+        // Read data
+        let val = self.sdhc.bdpr.read().bits() &
+            match nbytes {
+                3 => 0xFFFF_FF,
+                2 => 0xFFFF,
+                1 => 0xFF,
+                _ => 0xFFFF_FFFF
+            };
+
+        self.trans_pos += nbytes as u64;
+
+        if (self.block_size as u64)*(self.block_amount as u64) > self.trans_pos {
+            return Ok(val)
+        }
+
+        // Wait end of transfer
+        loop {
+            let sr = self.sdhc.eistr().read();
+            if sr.datteo().bit_is_set() || sr.datcrc().bit_is_set() || sr.datend().bit_is_set() {
+                self.reset();
+                return Err(()) // TODO proper error
+            }
+            if self.sdhc.nistr().read().trfc().bit_is_set() {
+                break;
+            }
+        }
+        self.sdhc.nistr().write(|w| w.trfc().yes());
+        Ok(val)
     }
 
     fn write_word(&self, val: u32) -> Result<bool, ()> {

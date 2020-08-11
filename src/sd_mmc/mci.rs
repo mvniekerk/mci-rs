@@ -50,7 +50,7 @@ pub trait Mci {
     fn adtc_stop(&self, command: u32, argument: u32) -> Result<(), ()>;
 
     /// Read a word on the wire
-    fn read_word(&self) -> Result<u32, ()>;
+    fn read_word(&mut self) -> Result<u32, ()>;
 
     /// Write a word on the wire
     fn write_word(&self, val: u32) -> Result<bool, ()>;
