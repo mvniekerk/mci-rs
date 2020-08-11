@@ -3,14 +3,19 @@ use crate::sd_mmc::command::mmc_commands::BusWidth;
 use atsamd_hal::target_device::SDHC0;
 use bit_field::BitField;
 use crate::sd_mmc::command::MciCommand;
+use atsamd_hal::target_device::sdhc0::{_TMR, TMR};
+use atsamd_hal::target_device::sdhc0::tmr::DTDSEL_A;
 
 pub struct AtsamdMci {
-    sdhc: SDHC0
+    sdhc: SDHC0,
+    trans_pos: u32,
+    block_size: u16,
+    block_amount: u16
 }
 
 impl AtsamdMci {
     pub fn new(sdhc: SDHC0) -> Result<AtsamdMci, ()> {
-        Ok(AtsamdMci{ sdhc })
+        Ok(AtsamdMci{ sdhc, trans_pos: 0, block_size: 0, block_amount: 0 })
     }
 
     pub fn reset(&mut self) {
@@ -40,7 +45,7 @@ impl AtsamdMci {
         // let clk_base = CONF_BASE_FREQ;
         let mut clk_base = self.sdhc.ca0r.read().baseclkf().bits();
         let clk_mult = self.sdhc.ca1r.read().clkmult().bits();
-        let mut div: u8 = 0;
+        let mut div: u32 = 0;
 
         // If programmable clock mode is enabled, baseclk is divided by 2
         if clk_mult > 0 {
@@ -50,13 +55,13 @@ impl AtsamdMci {
         if prog_clock_mode == 0 {
             // divided clock mode
             self.sdhc.ccr.modify(|_, w| w.clkgsel().clear_bit());
-            div = (clk_base / speed) / 2;
+            div = ((clk_base as u32) / speed) / 2;
         } else {
             // programmable clock mode
             self.sdhc.ccr.modify(|_, w| w.clkgsel().set_bit());
             // Specific constraint for SDHC/SDMMC IP
             // speed = Base Clock * Multi Clock / (div+1) */
-            div = (clk_base * (clk_mult + 1)) / speed;
+            div = ((clk_base as u32) * ((clk_mult as u32) + 1)) / speed;
             div = if div > 0 { div - 1 } else { div };
         }
 
@@ -68,8 +73,8 @@ impl AtsamdMci {
         self.sdhc.ccr.modify(|_, w|
             unsafe {
                 w
-                    .sdclkfsel().bits( div & 0xFF)
-                    .usdclkfsel().bits( div >> 8)
+                    .sdclkfsel().bits( (div as u8) & 0xFF)
+                    .usdclkfsel().bits( (div >> 8) as u8)
             }
         );
 
@@ -166,6 +171,16 @@ impl Mci for AtsamdMci {
         Ok(())
     }
 
+    fn send_command(&mut self, cmd: u32, arg: u32) -> Result<(), ()> {
+        if self.sdhc.psr.read().cmdinhc().bit_is_set() {
+            return Err(()) // TODO proper error
+        }
+
+        self.sdhc.tmr.modify(|_, w| w.dmaen().clear_bit());
+        self.sdhc.bcr.modify(|_, w| unsafe { w.bits(0) });
+        self.send_command_execute(0, cmd, arg)
+    }
+
     fn deinit(&mut self) -> Result<(), ()> {
         /// NOP
         Ok(())
@@ -192,54 +207,90 @@ impl Mci for AtsamdMci {
         Ok(())
     }
 
-    fn deselect_device(&self) -> Result<(), ()> {
+    fn deselect_device(&mut self) -> Result<(), ()> {
         /// NOP
         Ok(())
     }
 
-    fn get_bus_width(&self, slot: u8) -> Result<BusWidth, ()> {
+    fn get_bus_width(&mut self, slot: u8) -> Result<BusWidth, ()> {
         match slot {
             0 => Ok(BusWidth::_4BIT),
             _ => Err(()) // TOD proper error for invalid argument
         }
     }
 
-    fn is_high_speed_capable(&self) -> Result<bool, ()> {
+    fn is_high_speed_capable(&mut self) -> Result<bool, ()> {
         Ok(self.sdhc.ca0r.read().hssup().bit_is_set())
     }
 
     /// Send 74 clock cycles on the line.
     /// Note: It is required after card plug and before card install.
-    fn send_clock(&self) -> Result<(), ()> {
+    fn send_clock(&mut self) -> Result<(), ()> {
         for _m in 0..5000u32 {
             // Nop
         }
         Ok(())
     }
 
-    fn send_command(&mut self, cmd: u32, arg: u32) -> Result<(), ()> {
-        if self.sdhc.psr.read().cmdinhc().bit_is_set() {
-            return Err(()) // TODO proper error
-        }
-
-        self.sdhc.tmr.modify(|_, w| w.dmaen().clear_bit());
-        self.sdhc.bcr.modify(|_, w| unsafe { w.bits(0) });
-        self.send_command_execute(0, cmd, arg)
-    }
-
     fn get_response(&mut self) -> u32 {
         self.sdhc.rr[0].read().cmdresp().bits()
     }
 
-    fn get_response128(&self) -> u128 {
+    fn get_response128(&mut self) -> u128 {
         (self.sdhc.rr[0].read().cmdresp().bits() as u128) +
         ((self.sdhc.rr[1].read().cmdresp().bits() as u128) << 32) +
         ((self.sdhc.rr[2].read().cmdresp().bits() as u128) << 64) +
         ((self.sdhc.rr[3].read().cmdresp().bits() as u128) << 96)
     }
 
-    fn adtc_start(&self, command: u32, argument: u32, block_size: u16, block_amount: u16, access_in_blocks: bool) -> Result<(), ()> {
-        unimplemented!()
+    fn adtc_start(&mut self, command: u32, argument: u32, block_size: u16, block_amount: u16, access_in_blocks: bool) -> Result<(), ()> {
+        let psr = self.sdhc.psr.read();
+        // Check Command Inhibit (CMD/DAT) in the Present State register
+        if psr.cmdinhc().bit_is_set() || psr.cmdinhd().bit_is_set() {
+            return Err(())  // TODO proper error why we're erroring
+        }
+
+        let command: MciCommand = command.into();
+        if !command.sdio_multi_byte_transfer() &&
+            !command.sdio_block_mode_transfer() &&
+            !command.single_block_data_transfer() &&
+            !command.multi_block_data_transfer() {
+            return Err(()) // TODO proper error
+        }
+
+        self.sdhc.tmr.write(|w| {
+            if command.data_write_command() {
+                w.dtdsel().write();
+            } else {
+                w.dtdsel().read();
+            }
+            if command.sdio_multi_byte_transfer() {
+                w.msbsel().single();
+            } else if command.sdio_block_mode_transfer() {
+                w
+                    .bcen().enable()
+                    .msbsel().multiple();
+            } else if command.single_block_data_transfer() {
+                w.msbsel().single();
+            } else if command.multi_block_data_transfer() {
+                w
+                    .bcen().enable()
+                    .msbsel().multiple();
+            }
+            w
+        });
+
+        self.sdhc.bsr.write(|w| unsafe {
+            w.blocksize().bits(block_size)
+        }.boundary()._4k()
+        );
+        self.sdhc.bcr.write(|w| unsafe { w.bcnt().bits(block_amount) });
+
+        self.block_amount = block_amount;
+        self.block_size = block_size;
+        self.trans_pos = 0;
+
+        self.send_command_execute(1 << 5, command.val, argument)
     }
 
     fn adtc_stop(&self, command: u32, argument: u32) -> Result<(), ()> {

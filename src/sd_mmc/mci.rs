@@ -16,19 +16,19 @@ pub trait Mci {
     fn deselect_device(&mut self) -> Result<(), ()>;
 
     /// Get the maximum bus width for a device
-    fn get_bus_width(&self, slot: u8) -> Result<BusWidth, ()>;
+    fn get_bus_width(&mut self, slot: u8) -> Result<BusWidth, ()>;
 
     /// Whether the device is high speed capable
-    fn is_high_speed_capable(&self) -> Result<bool, ()>;
+    fn is_high_speed_capable(&mut self) -> Result<bool, ()>;
 
     /// Send 74 clock cycles on the line. Required after card plug and install
-    fn send_clock(&self) -> Result<(), ()>;
+    fn send_clock(&mut self) -> Result<(), ()>;
 
     /// Get 32 bits response of last command
-    fn get_response(&self) -> u32;
+    fn get_response(&mut self) -> u32;
 
     /// Get 128 bits response of last command
-    fn get_response128(&self) -> u128;
+    fn get_response128(&mut self) -> u128;
 
     /// ADTC command start
     /// An ADTC (Addressed Data Transfer Commands) is used for R/W access
@@ -40,7 +40,7 @@ pub trait Mci {
     /// * `block_amount`: Amount of blocks to transfer
     /// * `access_in_blocks`: If true - read_blocks/write_blocks must be used after this command
     ///                 Otherwise read_word/write_word must be used
-    fn adtc_start(&self, command: u32, argument: u32, block_size: u16, block_amount: u16, access_in_blocks: bool) -> Result<(), ()>;
+    fn adtc_start(&mut self, command: u32, argument: u32, block_size: u16, block_amount: u16, access_in_blocks: bool) -> Result<(), ()>;
 
     /// ADTC command stop
     /// Send a command to stop an ADTC
