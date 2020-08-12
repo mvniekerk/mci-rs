@@ -11,11 +11,11 @@ use bit_field::BitField;
 use crate::sd_mmc::registers::registers::Register;
 
 // SD/MMC transfer rate unit codes (10K) list
-pub const SD_MMC_TRANS_UNITS: [u16; 7] = [10, 100, 1_000, 10_000, 0, 0, 0];
+pub const SD_MMC_TRANS_UNITS: [u32; 7] = [10, 100, 1_000, 10_000, 0, 0, 0];
 // SD transfer multiplier factor codes (1/10) list
-pub const SD_TRANS_MULTIPLIERS: [u8; 16] = [0, 10, 12, 13, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80];
+pub const SD_TRANS_MULTIPLIERS: [u32; 16] = [0, 10, 12, 13, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80];
 // MMC transfer multiplier factor codes (1/10) list
-pub const MMC_TRANS_MULTIPLIERS: [u8; 16] = [0, 10, 12, 13, 15, 20, 26, 30, 35, 40, 45, 52, 55, 60, 70, 80];
+pub const MMC_TRANS_MULTIPLIERS: [u32; 16] = [0, 10, 12, 13, 15, 20, 26, 30, 35, 40, 45, 52, 55, 60, 70, 80];
 
 pub struct SdMmcCard<MCI, WP, DETECT>
     where MCI: Mci,
@@ -77,9 +77,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
 
             self.mci.send_command(SDMMC_CMD55_APP_CMD.into(), 0)?;
             let mut arg = ocr_voltage_support();
-            if v2 {
-                arg.val.set_bit(30, true);  // SD_ACMD41_HCS ACMD41 High Capacity Support
-            }
+            arg.val.set_bit(30, v2); // SD_ACMD41_HCS ACMD41 High Capacity Support
             self.mci.send_command(SD_MCI_ACMD41_SD_SEND_OP_COND.into(), arg.value())?;
             let resp = self.mci.get_response();
             let resp = OcrRegister { val: resp };

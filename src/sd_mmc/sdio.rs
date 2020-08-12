@@ -7,6 +7,9 @@ use crate::sd_mmc::registers::ocr::OcrRegister;
 use crate::sd_mmc::registers::registers::Register;
 use crate::sd_mmc::command::sdio_commands::cmd52::{Direction, Cmd52};
 use crate::sd_mmc::registers::sdio::cccr::function_select::FunctionSelection;
+use crate::sd_mmc::registers::sdio::cccr::bus_interface::{BusWidth, BusInterfaceControlRegister};
+use crate::sd_mmc::registers::sdio::cccr::card_capability::CardCapabilityRegister;
+use crate::sd_mmc::sd::sd_bus_width::SdBusWidth;
 
 impl SdioDevice {
 
@@ -139,11 +142,11 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             // Error on SDIO register, the high speed is not activated and the clock can't be more
             // than 25MHz. This error is present on specific SDIO card (H&D wireless card - HDG104 WiFi SIP)
             0x32
-        } else { buf[5] };
+        } else { buf[5] } as usize;
 
         // Decode transfer speed in Hz
-        let unit = SD_MMC_TRANS_UNITS[(tplfe_max_tran_speed & 0x7) as usize] as u32;
-        let mult = SD_TRANS_MULTIPLIERS[((tplfe_max_tran_speed >> 3) & 0xF) as usize] as u32;
+        let unit = SD_MMC_TRANS_UNITS[tplfe_max_tran_speed & 0x7];
+        let mult = SD_TRANS_MULTIPLIERS[(tplfe_max_tran_speed >> 3) & 0xF];
         self.clock = unit * mult * 1000;
 
         // Note: A combo card shall be a Full-Speed SDIO card
@@ -152,5 +155,28 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         // - a Low-Speed SDIO card which supports 400Khz minimum
         // - a Full-Speed SDIO card which supports upto 25MHz
         Ok(())
+    }
+
+    /// Switch bus width to mode. self.bus_width is update
+    /// Returns final bus_width
+    ///
+    // 	SD memory cards always supports bus 4bit
+    // 	SD COMBO card always supports bus 4bit
+    // 	SDIO Full-Speed alone always supports 4bit
+    // 	SDIO Low-Speed alone can support 4bit (Optional)
+    pub fn sdio_cmd52_switch_to_4_bus_width_mode(&mut self) -> Result<BusWidth, ()> {
+        let mut cccr_cap = CardCapabilityRegister { val:
+            self.sdio_cmd52(
+                Direction::Read, FunctionSelection::FunctionCia0, CardCapabilityRegister::address() as u32, false, 0
+            )?
+        };
+        if !cccr_cap.low_speed_card_supports_4bit_mode() {
+            return Ok(BusWidth::_1bit);
+        }
+        let mut bus_ctrl = BusInterfaceControlRegister { val: 0 };
+        bus_ctrl.set_bus_width(BusWidth::_4bit);
+        self.sdio_cmd52(Direction::Write, FunctionSelection::FunctionCia0, BusInterfaceControlRegister::address() as u32, true, bus_ctrl.value())?;
+        self.bus_width = SdBusWidth::_4bit; // TODO : Check difference between BusWidth enums and consolidate
+        Ok(BusWidth::_4bit)
     }
 }
