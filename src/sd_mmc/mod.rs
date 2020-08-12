@@ -1,4 +1,4 @@
-#[cfg(feature = "atsamd51")]
+#[cfg(feature = "mmc")]
 pub mod mmc;
 pub mod card_state;
 pub mod mci;

@@ -30,7 +30,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             let response = OcrRegister { val: response };
             if response.card_powered_up_status() {
                 if response.access_mode() == AccessMode::Sector {
-                    self.card_type.set_high_capacity(true)
+                    self.card_type.set_high_capacity(true);
                 }
                 break;
             }
