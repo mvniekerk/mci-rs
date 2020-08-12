@@ -1,4 +1,4 @@
-use crate::sd_mmc::sd_mmc::SdMmcCard;
+use crate::sd_mmc::sd_mmc::{SdMmcCard, ocr_voltage_support};
 use crate::sd_mmc::mci::Mci;
 use atsamd_hal::hal::digital::v2::InputPin;
 use crate::sd_mmc::commands::MMC_MCI_CMD1_SEND_OP_COND;
@@ -11,15 +11,8 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
 {
     /// Sends operation condition command and read OCR (MCI only)
     pub fn mmc_mci_send_operation_condition(&mut self) -> Result<(), ()> {
-        let mut ocr = OcrRegister { val: 0 };
-        ocr
-            .set_vdd_27_28(true)
-            .set_vdd_28_29(true)
-            .set_vdd_29_30(true)
-            .set_vdd_30_31(true)
-            .set_vdd_31_32(true)
-            .set_vdd_32_33(true)
-            .set_access_mode(AccessMode::Sector);
+        let mut ocr = ocr_voltage_support();
+        ocr.set_access_mode(AccessMode::Sector);
         // Timeout is 1s = 400KHz / ((6+6)*8) cycles = 4200 retries. TODO maybe a delay check?
         for i in (0..4200).rev() {
             if i == 0 {

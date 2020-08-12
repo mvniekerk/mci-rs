@@ -239,7 +239,7 @@ impl OcrRegister {
     }
 
     /// Card capacity status bit - SD card
-    pub fn card_capacity_status(&mut self) -> bool {
+    pub fn card_capacity_status(&self) -> bool {
         self.val.get_bit(30)
     }
 
