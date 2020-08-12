@@ -14,6 +14,12 @@ pub struct Command<RESP, FLAG, MODE, DEVICE> {
     _device: PhantomData<DEVICE>,
 }
 
+impl <RESP, FLAG, MODE, DEVICE> From<Command<RESP, FLAG, MODE, DEVICE>> for u32 {
+    fn from(val: Command<RESP, FLAG, MODE, DEVICE>) -> Self {
+        val.number as u32
+    }
+}
+
 // Cmd0(bc): Reset all cards to idle state
 pub const SDMMC_SPI_CMD0_GO_IDLE_STATE: Command<CmdR1R6, NoFlag, SpiMode, SdMmcDevice> =
     Command { number: 0, _response: PhantomData, _flag: PhantomData, _mode: PhantomData, _device: PhantomData };

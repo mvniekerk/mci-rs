@@ -20,7 +20,9 @@ version = "~0.6"
 optional = true
 
 [features]
-default = ["atsamd51j20a"]
+sdio = []
+mmc = []
+default = ["atsamd51j20a", "sdio", "mmc"]
 atsamd51j20a = ["atsamd51", "atsamd-hal/samd51j20a"]
 atsamd51 = ["rt", "atsamd-hal", "atsamd-hal/samd51", "unproven"]
 unproven = ["atsamd-hal/unproven"]

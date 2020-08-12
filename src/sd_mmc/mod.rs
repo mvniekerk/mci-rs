@@ -1,3 +1,6 @@
+#[cfg(feature = "atsamd51")]
+pub mod mmc;
+pub mod card_state;
 pub mod mci;
 pub mod sdio;
 pub mod sdio_state;
