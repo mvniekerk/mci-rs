@@ -2,7 +2,9 @@
 pub mod mmc;
 pub mod card_state;
 pub mod mci;
+#[cfg(feature = "sdio")]
 pub mod sdio;
+#[cfg(feature = "sdio")]
 pub mod sdio_state;
 pub mod mode_index;
 pub mod command;

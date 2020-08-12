@@ -7,12 +7,13 @@ pub struct OcrRegister {
 }
 
 impl Register<u32> for OcrRegister {
+    #[inline(always)]
     fn value(&self) -> u32 {
         self.val
     }
 
     fn address() -> u8 {
-        0x0
+        unimplemented!()
     }
 }
 

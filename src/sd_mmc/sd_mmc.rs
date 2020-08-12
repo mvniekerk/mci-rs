@@ -70,7 +70,9 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
 
             self.mci.send_command(SDMMC_CMD55_APP_CMD.into(), 0)?;
             let mut arg = ocr_voltage_support();
-            arg.val.set_bit(30, true);  // SD_ACMD41_HCS ACMD41 High Capacity Support
+            if v2 {
+                arg.val.set_bit(30, true);  // SD_ACMD41_HCS ACMD41 High Capacity Support
+            }
             self.mci.send_command(SD_MCI_ACMD41_SD_SEND_OP_COND.into(), arg.value())?;
             let resp = self.mci.get_response();
             let resp = OcrRegister { val: resp };
