@@ -1,14 +1,21 @@
 use crate::sd_mmc::command::device_type::{SdioDeviceType, SdioDevice};
-use crate::sd_mmc::sd_mmc::{SdMmcCard, ocr_voltage_support};
+use crate::sd_mmc::sd_mmc::{SdMmcCard, ocr_voltage_support, SD_MMC_TRANS_UNITS, SD_TRANS_MULTIPLIERS};
 use crate::sd_mmc::mci::Mci;
 use atsamd_hal::hal::digital::v2::InputPin;
-use crate::sd_mmc::commands::SDIO_CMD5_SEND_OP_COND;
+use crate::sd_mmc::commands::{SDIO_CMD5_SEND_OP_COND, SDIO_CMD52_IO_RW_DIRECT};
 use crate::sd_mmc::registers::ocr::OcrRegister;
 use crate::sd_mmc::registers::registers::Register;
+use crate::sd_mmc::command::sdio_commands::cmd52::{Direction, Cmd52};
+use crate::sd_mmc::registers::sdio::cccr::function_select::FunctionSelection;
 
 impl SdioDevice {
 
 }
+
+pub const SDIO_CCCR_CIS_PTR: u32 = 0x09;
+pub const SDIO_CISTPL_END: u8 = 0xFF;
+pub const SDIO_CISTPL_FUNCE: u8 = 0x22;
+
 
 impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     where MCI: Mci,
@@ -49,6 +56,101 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             }
         }
 
+        Ok(())
+    }
+
+    /// SDIO IO_RW_DIRECT command
+    /// # Arguments
+    /// * `direction` Read or write
+    /// * `function` Function number
+    /// * `register_address` Register address
+    /// * `read_after_write` Read after write flag
+    /// * `write_data` Write data
+    pub fn sdio_cmd52(&mut self, direction: Direction, function: FunctionSelection, register_address: u32, read_after_write: bool, write_data: u8) -> Result<u8, ()> {
+        let mut arg = Cmd52 { val: 0 };
+        arg
+            .set_write_data(write_data)
+            .set_direction(direction)
+            .set_function_number(function as u8)
+            .set_read_after_write(read_after_write)
+            .set_register_address(register_address);
+        self.mci.send_command(SDIO_CMD52_IO_RW_DIRECT.into(), arg.value())?;
+        let resp = self.mci.get_response() as u8;
+        Ok(resp)
+    }
+
+    pub fn sdio_read_cia(&mut self, address: u32, buf: &mut [u8], byte_count: usize) -> Result<(), ()> {
+        if byte_count > buf.len() {
+            return Err(())  // Going to cause a buffer overflow
+        }
+        for i in 0..byte_count {
+            buf[i] = self.sdio_cmd52(Direction::Read, FunctionSelection::FunctionCia0, address + (i as u32), false, 0)?;
+        }
+        Ok(())
+    }
+
+    pub fn sdio_read_cia_32bits(&mut self, address: u32) -> Result<u32, ()> {
+        let mut buf = [0u8; 4];
+        self.sdio_read_cia(address, &mut buf, 4);
+        let ret =
+            ((buf[0] as u32) << 0) +
+            ((buf[1] as u32) << 8) +
+            ((buf[2] as u32) << 16) +
+            ((buf[3] as u32) << 24);
+        Ok(ret)
+    }
+
+    pub fn sdio_cis_area_in_ccr_address(&mut self) -> Result<u32, ()> {
+        self.sdio_read_cia_32bits(SDIO_CCCR_CIS_PTR)
+    }
+
+    // TODO it says get max speed but it updates _self_. FIXME
+    /// Compute SDIO max transfer speed in Hz and update self.clock.
+    pub fn sdio_get_max_speed(&mut self) -> Result<(), ()> {
+        let cis_address = self.sdio_cis_area_in_ccr_address()?;
+        let mut buf = [0u8; 6];
+        let mut addr = cis_address;
+
+        loop {
+            // Read a sample of CIA area
+            self.sdio_read_cia(addr, &mut buf, 4)?;
+            if buf[0] == SDIO_CISTPL_END {
+                return Err(()) // TODO Error: Tuple error
+            }
+            if buf[0] == SDIO_CISTPL_FUNCE && buf[2] == 0x0 {
+                break; // Fun0 tuple found
+            }
+            if buf[1] == 0 {
+                return Err(()) // TODO proper error: Tuple error
+            }
+
+            // Compute next address
+            addr += (buf[1] as u32) -1;
+            if addr > (cis_address + 256) {
+                return Err(()) // TODO proper error: Out of CIS area
+            }
+        }
+
+        // Read all Fun0 tuple field: fn0_blk_size & max_tran_speed
+        addr -= 3;
+        self.sdio_read_cia(addr, &mut buf, 6);
+
+        let tplfe_max_tran_speed = if buf[5] > 0x32 {
+            // Error on SDIO register, the high speed is not activated and the clock can't be more
+            // than 25MHz. This error is present on specific SDIO card (H&D wireless card - HDG104 WiFi SIP)
+            0x32
+        } else { buf[5] };
+
+        // Decode transfer speed in Hz
+        let unit = SD_MMC_TRANS_UNITS[(tplfe_max_tran_speed & 0x7) as usize] as u32;
+        let mult = SD_TRANS_MULTIPLIERS[((tplfe_max_tran_speed >> 3) & 0xF) as usize] as u32;
+        self.clock = unit * mult * 1000;
+
+        // Note: A combo card shall be a Full-Speed SDIO card
+        // which supports upto 25MHz.
+        // A SDIO card alone can be:
+        // - a Low-Speed SDIO card which supports 400Khz minimum
+        // - a Full-Speed SDIO card which supports upto 25MHz
         Ok(())
     }
 }

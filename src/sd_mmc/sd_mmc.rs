@@ -10,6 +10,13 @@ use crate::sd_mmc::registers::ocr::OcrRegister;
 use bit_field::BitField;
 use crate::sd_mmc::registers::registers::Register;
 
+// SD/MMC transfer rate unit codes (10K) list
+pub const SD_MMC_TRANS_UNITS: [u16; 7] = [10, 100, 1_000, 10_000, 0, 0, 0];
+// SD transfer multiplier factor codes (1/10) list
+pub const SD_TRANS_MULTIPLIERS: [u8; 16] = [0, 10, 12, 13, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80];
+// MMC transfer multiplier factor codes (1/10) list
+pub const MMC_TRANS_MULTIPLIERS: [u8; 16] = [0, 10, 12, 13, 15, 20, 26, 30, 35, 40, 45, 52, 55, 60, 70, 80];
+
 pub struct SdMmcCard<MCI, WP, DETECT>
     where MCI: Mci,
     WP: InputPin,       // Write protect pin
