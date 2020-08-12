@@ -10,6 +10,7 @@ use crate::sd_mmc::registers::sdio::cccr::function_select::FunctionSelection;
 use crate::sd_mmc::registers::sdio::cccr::bus_interface::{BusWidth, BusInterfaceControlRegister};
 use crate::sd_mmc::registers::sdio::cccr::card_capability::CardCapabilityRegister;
 use crate::sd_mmc::sd::sd_bus_width::SdBusWidth;
+use crate::sd_mmc::registers::sdio::cccr::high_speed::HighSpeedRegister;
 
 impl SdioDevice {
 
@@ -178,5 +179,29 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         self.sdio_cmd52(Direction::Write, FunctionSelection::FunctionCia0, BusInterfaceControlRegister::address() as u32, true, bus_ctrl.value())?;
         self.bus_width = SdBusWidth::_4bit; // TODO : Check difference between BusWidth enums and consolidate
         Ok(BusWidth::_4bit)
+    }
+
+    /// Enable High Speed mode
+    /// self.high_speed updated
+    /// self.clock updated
+    ///
+    /// Returns a true result if put in high speed mode, false if not possible
+    pub fn sdio_cmd52_set_high_speed_mode(&mut self) -> Result<bool, ()> {
+        let high_speed = HighSpeedRegister {
+            val: self.sdio_cmd52(Direction::Read, FunctionSelection::FunctionCia0, HighSpeedRegister::address() as u32, false, 0)?
+        };
+
+        // Not supported, not a protocol error
+        if !high_speed.supports_high_speed() {
+            return Ok(false)
+        }
+
+        let mut high_speed = HighSpeedRegister { val: 0 };
+        high_speed.set_enable_high_speed(true);
+
+        self.sdio_cmd52(Direction::Write, FunctionSelection::FunctionCia0, HighSpeedRegister::address(), true, high_speed.value())?;
+        self.high_speed = true;
+        self.clock *= 2;
+        Ok(true)
     }
 }
