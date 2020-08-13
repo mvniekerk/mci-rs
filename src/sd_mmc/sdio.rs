@@ -2,7 +2,7 @@ use crate::sd_mmc::command::device_type::{SdioDeviceType, SdioDevice};
 use crate::sd_mmc::sd_mmc::{SdMmcCard, ocr_voltage_support, SD_MMC_TRANS_UNITS, SD_TRANS_MULTIPLIERS};
 use crate::sd_mmc::mci::Mci;
 use atsamd_hal::hal::digital::v2::InputPin;
-use crate::sd_mmc::commands::{SDIO_CMD5_SEND_OP_COND, SDIO_CMD52_IO_RW_DIRECT};
+use crate::sd_mmc::commands::{SDIO_CMD5_SEND_OP_COND, SDIO_CMD52_IO_RW_DIRECT, SDIO_CMD53_IO_R_BLOCK_EXTENDED, SDIO_CMD53_IO_W_BLOCK_EXTENDED};
 use crate::sd_mmc::registers::ocr::OcrRegister;
 use crate::sd_mmc::registers::registers::Register;
 use crate::sd_mmc::command::sdio_commands::cmd52::{Direction, Cmd52};
@@ -12,6 +12,7 @@ use crate::sd_mmc::registers::sdio::cccr::card_capability::CardCapabilityRegiste
 use crate::sd_mmc::sd::sd_bus_width::SdBusWidth;
 use crate::sd_mmc::registers::sdio::cccr::high_speed::HighSpeedRegister;
 use crate::sd_mmc::command::mmc_commands::BusWidth;
+use crate::sd_mmc::command::sdio_commands::cmd53::{Cmd53, OpCode};
 
 impl SdioDevice {
 
@@ -209,5 +210,25 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         Ok(true)
     }
 
+    /// CMD53 - SDIO IO_RW_EXTENDED command
+    /// This implementation support only the SDIO multi-byte transfer mode which is similar to the
+    /// single block transfer on memory.
+    /// Note: The SDIO block transfer mode is optional for SDIO card.
+    ///
+    pub fn sdio_cmd53_io_rw_extended(&mut self, direction: Direction, function: FunctionSelection, register_address: u16, increment_address: bool, data_size: u16, access_block: bool) -> Result<(), ()> {
+        let command = if direction == Direction::Read { SDIO_CMD53_IO_R_BLOCK_EXTENDED } else { SDIO_CMD53_IO_W_BLOCK_EXTENDED };
+        let mut arg = Cmd53::default();
 
+        if size == 0 || size > 512 {
+            return Err(()) // TODO proper error for not having correct size
+        }
+
+        arg.set_block_or_bytes_count(data_size % 512)
+            .set_address(register_address)
+            .set_op_code_increment_address(increment_address.into())
+            .set_block_mode(false)
+            .set_function_number(function as u8)
+            .set_direction(direction);
+        self.mci.adtc_start(command.into(), arg.val, data_size, 1, access_block)
+    }
 }
