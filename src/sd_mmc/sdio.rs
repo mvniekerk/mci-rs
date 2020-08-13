@@ -216,10 +216,10 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     /// Note: The SDIO block transfer mode is optional for SDIO card.
     ///
     pub fn sdio_cmd53_io_rw_extended(&mut self, direction: Direction, function: FunctionSelection, register_address: u16, increment_address: bool, data_size: u16, access_block: bool) -> Result<(), ()> {
-        let command = if direction == Direction::Read { SDIO_CMD53_IO_R_BLOCK_EXTENDED } else { SDIO_CMD53_IO_W_BLOCK_EXTENDED };
+        let command: u32 = if direction == Direction::Read { SDIO_CMD53_IO_R_BLOCK_EXTENDED.into()} else { SDIO_CMD53_IO_W_BLOCK_EXTENDED.into() };
         let mut arg = Cmd53::default();
 
-        if size == 0 || size > 512 {
+        if data_size == 0 || data_size > 512 {
             return Err(()) // TODO proper error for not having correct size
         }
 
@@ -229,6 +229,6 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             .set_block_mode(false)
             .set_function_number(function as u8)
             .set_direction(direction);
-        self.mci.adtc_start(command.into(), arg.val, data_size, 1, access_block)
+        self.mci.adtc_start(command, arg.val, data_size, 1, access_block)
     }
 }

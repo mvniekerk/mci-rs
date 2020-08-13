@@ -5,7 +5,7 @@ use crate::sd_mmc::card_version::CardVersion;
 use crate::sd_mmc::sd::sd_bus_width::SdBusWidth;
 use crate::sd_mmc::registers::csd::{CsdRegister, SdCsdStructureVersion};
 use atsamd_hal::hal::digital::v2::InputPin;
-use crate::sd_mmc::commands::{SD_MCI_ACMD41_SD_SEND_OP_COND, SDMMC_CMD55_APP_CMD, SD_CMD6_SWITCH_FUNC, Command, SD_CMD8_SEND_IF_COND, SDMMC_MCI_CMD9_SEND_CSD, SDMMC_MCI_CMD13_SEND_STATUS};
+use crate::sd_mmc::commands::{SD_MCI_ACMD41_SD_SEND_OP_COND, SDMMC_CMD55_APP_CMD, SD_CMD6_SWITCH_FUNC, Command, SD_CMD8_SEND_IF_COND, SDMMC_MCI_CMD9_SEND_CSD, SDMMC_MCI_CMD13_SEND_STATUS, SD_ACMD6_SET_BUS_WIDTH};
 use crate::sd_mmc::registers::ocr::OcrRegister;
 use bit_field::BitField;
 use crate::sd_mmc::registers::registers::{Register, SdMmcRegister};
@@ -227,5 +227,13 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             }
         }
         Ok(status)
+    }
+
+    /// ACMD6 = Define the data bus width to be 4 bits
+    pub fn sd_acmd6_set_data_bus_width_to_4_bits(&mut self) -> Result<(), ()> {
+        self.mci.send_command(SDMMC_CMD55_APP_CMD.into(), (self.rca as u32) << 16)?;
+        self.mci.send_command(SD_ACMD6_SET_BUS_WIDTH.into(), 0x2);
+        self.bus_width = BusWidth::_4BIT;
+        Ok(())
     }
 }
