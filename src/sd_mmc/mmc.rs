@@ -78,7 +78,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     /// CMD8 - The card sends its EXT_CSD as a block of data
     /// Returns whether high speed can be handled by this
     /// self.capacity is updated
-    pub fn mmc_cmd8(&mut self) -> Result<bool, ()> {
+    pub fn mmc_cmd8_high_speed_capable_and_update_capacity(&mut self) -> Result<bool, ()> {
         self.mci.adtc_start(MMC_CMD8_SEND_EXT_CSD.into(), 0, 512, 1, false)?;
 
         let mut index = 0: u32;
