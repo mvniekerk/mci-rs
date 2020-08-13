@@ -1,88 +1,100 @@
 pub trait CommandFlag {
-    fn val() -> isize;
+    fn val(&self) -> u32;
 }
 
-pub struct NoFlag {}
+#[derive(Default)]
+pub struct NoFlag;
 impl CommandFlag for NoFlag {
-    fn val() -> isize {
-        CommandFlags::NoFlag as isize
+    fn val(&self) -> u32 {
+        CommandFlags::NoFlag as u32
     }
 }
 
-pub struct OpenDrain {}
+#[derive(Default)]
+pub struct OpenDrain;
 impl CommandFlag for OpenDrain {
-    fn val() -> isize {
-        CommandFlags::OpenDrain as isize
+    fn val(&self) -> u32 {
+        CommandFlags::OpenDrain as u32
     }
 }
 
-pub struct Write {}
+#[derive(Default)]
+pub struct Write;
 impl CommandFlag for Write {
-    fn val() -> isize {
-        CommandFlags::Write as isize
+    fn val(&self) -> u32 {
+        CommandFlags::Write as u32
     }
 }
 
-pub struct SdioByte {}
+#[derive(Default)]
+pub struct SdioByte;
 impl CommandFlag for SdioByte {
-    fn val() -> isize {
-        CommandFlags::SdioByte as isize
+    fn val(&self) -> u32 {
+        CommandFlags::SdioByte as u32
     }
 }
 
-pub struct SdioBlock {}
+#[derive(Default)]
+pub struct SdioBlock;
 impl CommandFlag for SdioBlock {
-    fn val() -> isize {
-        CommandFlags::SdioBlock as isize
+    fn val(&self) -> u32 {
+        CommandFlags::SdioBlock as u32
     }
 }
 
-pub struct Stream {}
+#[derive(Default)]
+pub struct Stream;
 impl CommandFlag for Stream {
-    fn val() -> isize {
-        CommandFlags::Stream as isize
+    fn val(&self) -> u32 {
+        CommandFlags::Stream as u32
     }
 }
 
-pub struct SingleBlock {}
+#[derive(Default)]
+pub struct SingleBlock;
 impl CommandFlag for SingleBlock {
-    fn val() -> isize {
-        CommandFlags::SingleBlock as isize
+    fn val(&self) -> u32 {
+        CommandFlags::SingleBlock as u32
     }
 }
 
-pub struct MultiBlock {}
+#[derive(Default)]
+pub struct MultiBlock;
 impl CommandFlag for MultiBlock {
-    fn val() -> isize {
-        CommandFlags::MultiBlock as isize
+    fn val(&self) -> u32 {
+        CommandFlags::MultiBlock as u32
     }
 }
 
-pub struct WriteSingleBlock {}
+#[derive(Default)]
+pub struct WriteSingleBlock;
 impl CommandFlag for WriteSingleBlock {
-    fn val() -> isize {
-        CommandFlags::WriteSingleBlock as isize
+    fn val(&self) -> u32 {
+        CommandFlags::WriteSingleBlock as u32
     }
 }
 
-pub struct WriteMultiBlock {}
+#[derive(Default)]
+pub struct WriteMultiBlock;
 impl CommandFlag for WriteMultiBlock {
-    fn val() -> isize {
-        CommandFlags::WriteMultiBlock as isize
+    fn val(&self) -> u32 {
+        CommandFlags::WriteMultiBlock as u32
     }
 }
 
-pub struct SdioWriteByte {}
+#[derive(Default)]
+pub struct SdioWriteByte;
 impl CommandFlag for SdioWriteByte {
-    fn val() -> isize {
-        CommandFlags::SdioWriteByte as isize
+    fn val(&self) -> u32 {
+        CommandFlags::SdioWriteByte as u32
     }
 }
 
-pub struct SdioWriteBlock {}
+#[derive(Default)]
+pub struct SdioWriteBlock;
 impl CommandFlag for SdioWriteBlock {
-    fn val() -> isize {
-        CommandFlags::SdioWriteBlock as isize
+    fn val(&self) -> u32 {
+        CommandFlags::SdioWriteBlock as u32
     }
 }
 

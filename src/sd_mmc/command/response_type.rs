@@ -15,10 +15,16 @@ pub trait ResponseBusy {}
 pub trait ResponseCrc {}
 
 pub trait Response {
-    fn val() -> u32;
+    fn val(&self) -> u32;
 }
 
 pub struct NoResponse;
+impl Response for NoResponse {
+    #[inline(always)]
+    fn val(&self) -> u32 {
+        ResponseType::NoResponse as u32
+    }
+}
 
 #[derive(Default)]
 pub struct CmdR1R6;
@@ -26,7 +32,7 @@ impl ResponsePresent for CmdR1R6 {}
 impl ResponseCrc for CmdR1R6 {}
 impl Response for CmdR1R6 {
     #[inline(always)]
-    fn val() -> u32 {
+    fn val(&self) -> u32 {
         ResponseType::CmdR1R6 as u32
     }
 }
@@ -38,7 +44,7 @@ impl ResponseBusy for CmdR1B{}
 impl ResponseCrc for CmdR1B {}
 impl Response for CmdR1B {
     #[inline(always)]
-    fn val() -> u32 {
+    fn val(&self) -> u32 {
         ResponseType::CmdR1B as u32
     }
 }
@@ -51,7 +57,7 @@ impl Response136 for CmdR2 {}
 impl ResponseCrc for CmdR2 {}
 impl Response for CmdR2 {
     #[inline(always)]
-    fn val() -> u32 {
+    fn val(&self) -> u32 {
         ResponseType::CmdR2 as u32
     }
 }
@@ -62,7 +68,7 @@ impl ResponsePresent for CmdR3R4 {}
 impl Response32 for CmdR3R4 {}
 impl Response for CmdR3R4 {
     #[inline(always)]
-    fn val() -> u32 {
+    fn val(&self) -> u32 {
         ResponseType::CmdR3R4 as u32
     }
 }
@@ -74,7 +80,7 @@ impl Response8 for CmdR5 {}
 impl ResponseCrc for CmdR5 {}
 impl Response for CmdR5 {
     #[inline(always)]
-    fn val() -> u32 {
+    fn val(&self) -> u32 {
         ResponseType::CmdR5 as u32
     }
 }
@@ -86,7 +92,7 @@ impl Response32 for CmdR7 {}
 impl ResponseCrc for CmdR7 {}
 impl Response for CmdR7 {
     #[inline(always)]
-    fn val() -> u32 {
+    fn val(&self) -> u32 {
         ResponseType::CmdR7 as u32
     }
 }

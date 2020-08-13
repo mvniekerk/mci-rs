@@ -196,12 +196,16 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             return Ok(false)
         }
 
+        // TODO: Check if already in high speed using flag otherwise could lead to faulty state
+
         let mut high_speed = HighSpeedRegister { val: 0 };
         high_speed.set_enable_high_speed(true);
 
-        self.sdio_cmd52(Direction::Write, FunctionSelection::FunctionCia0, HighSpeedRegister::address(), true, high_speed.value())?;
+        self.sdio_cmd52(Direction::Write, FunctionSelection::FunctionCia0, HighSpeedRegister::address() as u32, true, high_speed.value())?;
         self.high_speed = true;
         self.clock *= 2;
         Ok(true)
     }
+
+
 }

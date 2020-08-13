@@ -5,10 +5,14 @@ use crate::sd_mmc::card_version::CardVersion;
 use crate::sd_mmc::sd::sd_bus_width::SdBusWidth;
 use crate::sd_mmc::registers::csd::CsdRegister;
 use atsamd_hal::hal::digital::v2::InputPin;
-use crate::sd_mmc::commands::{SD_MCI_ACMD41_SD_SEND_OP_COND, SDMMC_CMD55_APP_CMD};
+use crate::sd_mmc::commands::{SD_MCI_ACMD41_SD_SEND_OP_COND, SDMMC_CMD55_APP_CMD, SD_CMD6_SWITCH_FUNC, Command};
 use crate::sd_mmc::registers::ocr::OcrRegister;
 use bit_field::BitField;
-use crate::sd_mmc::registers::registers::Register;
+use crate::sd_mmc::registers::registers::{Register, SdMmcRegister};
+use crate::sd_mmc::registers::sd::switch_status::SwitchStatusRegister;
+use crate::sd_mmc::command::sd_commands::cmd6::{Cmd6, Cmd6Mode};
+use crate::sd_mmc::command::flags::CommandFlag;
+use crate::sd_mmc::command::response_type::Response;
 
 // SD/MMC transfer rate unit codes (10K) list
 pub const SD_MMC_TRANS_UNITS: [u32; 7] = [10, 100, 1_000, 10_000, 0, 0, 0];
@@ -89,5 +93,36 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             }
         }
         Ok(())
+    }
+
+    pub fn sd_cmd6<RESPONSE, FLAG, MODE, DEVICE>(
+        &mut self,
+        command: Command<RESPONSE, FLAG, MODE, DEVICE>,
+        grp1_high_speed: bool,
+        grp2_no_influence: bool,
+        grp3_no_influence: bool,
+        grp4_no_influence: bool,
+        grp5_no_influence: bool,
+        grp6_no_influence: bool,
+        mode: Cmd6Mode
+    ) -> Result<SwitchStatusRegister, ()>
+        where RESPONSE: Response,
+              FLAG: CommandFlag {
+        let mut buf = [0u8; 64];
+        let mut arg = Cmd6 { val: 0 };
+        arg.set_function_group_1_access_mode(grp1_high_speed)
+            .set_function_group2_command_system(grp2_no_influence)
+            .set_function_group3(grp3_no_influence)
+            .set_function_group4(grp4_no_influence)
+            .set_function_group5(grp5_no_influence)
+            .set_function_group6(grp6_no_influence)
+            .set_mode(mode);
+
+        self.mci.adtc_start(command.into(), arg.value(), 64, 1, true)?;
+        self.mci.read_blocks(&mut buf, 1)?;
+        self.mci.wait_until_read_finished()?;
+
+        let ret: SwitchStatusRegister = buf.into();
+        Ok(ret)
     }
 }
