@@ -3,9 +3,9 @@ use crate::sd_mmc::card_state::CardState;
 use crate::sd_mmc::card_type::CardType;
 use crate::sd_mmc::card_version::CardVersion;
 use crate::sd_mmc::sd::sd_bus_width::SdBusWidth;
-use crate::sd_mmc::registers::csd::CsdRegister;
+use crate::sd_mmc::registers::csd::{CsdRegister, SdCsdStructureVersion};
 use atsamd_hal::hal::digital::v2::InputPin;
-use crate::sd_mmc::commands::{SD_MCI_ACMD41_SD_SEND_OP_COND, SDMMC_CMD55_APP_CMD, SD_CMD6_SWITCH_FUNC, Command, SD_CMD8_SEND_IF_COND, SDMMC_MCI_CMD9_SEND_CSD};
+use crate::sd_mmc::commands::{SD_MCI_ACMD41_SD_SEND_OP_COND, SDMMC_CMD55_APP_CMD, SD_CMD6_SWITCH_FUNC, Command, SD_CMD8_SEND_IF_COND, SDMMC_MCI_CMD9_SEND_CSD, SDMMC_MCI_CMD13_SEND_STATUS};
 use crate::sd_mmc::registers::ocr::OcrRegister;
 use bit_field::BitField;
 use crate::sd_mmc::registers::registers::{Register, SdMmcRegister};
@@ -15,6 +15,7 @@ use crate::sd_mmc::command::flags::CommandFlag;
 use crate::sd_mmc::command::response_type::Response;
 use crate::sd_mmc::command::mmc_commands::BusWidth;
 use crate::sd_mmc::command::sd_commands::Cmd8::Cmd8;
+use crate::sd_mmc::registers::sd::card_status::CardStatusRegister;
 
 // SD/MMC transfer rate unit codes (10K) list
 pub const SD_MMC_TRANS_UNITS: [u32; 7] = [10, 100, 1_000, 10_000, 0, 0, 0];
@@ -189,6 +190,40 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         self.csd = CsdRegister {
             val: self.mci.get_response128()
         };
+        Ok(())
+    }
+
+    /// Decodes the SD CSD register
+    /// updates self.clock, self.capacity
+    pub fn sd_decode_csd(&mut self) -> Result<(), ()> {
+        // 	Get SD memory maximum transfer speed in Hz.
+        let trans_speed = self.csd.transmission_speed();
+        let unit = SD_MMC_TRANS_UNITS[(trans_speed & 0x7) as usize];
+        let mult = SD_TRANS_MULTIPLIERS[((trans_speed >> 3) & 0xF) as usize];
+        self.clock = unit * mult * 1000;
+
+        if self.csd.sd_csd_structure_version() as u8 >= (SdCsdStructureVersion::Ver2_0 as u8) {
+            self.capacity = (self.csd.sd_2_0_card_size() + 1) * 512;
+        } else {
+            let block_nr = ((self.csd.card_size() as u32) + 1) * ((self.csd.card_size_multiplier() as u32) + 2);
+            self.capacity = block_nr * (1 << self.csd.read_bl_length() as u32) / 1024;
+        }
+        Ok(())
+    }
+
+    /// CMD13: Get status register.
+    /// Waits for the clear of the busy flag
+    pub fn sd_mmc_cmd13_wait_for_ready_for_data_flag(&mut self) -> Result<(), ()> {
+        for i in (0..200_000u32).rev() {
+            if i == 0 {
+                return Err(()); // TODO proper timeout error
+            }
+            self.mci.send_command(SDMMC_MCI_CMD13_SEND_STATUS.into(), (self.rca as u32) << 16)?;
+            let ret = CardStatusRegister { val: self.mci.get_response() };
+            if ret.ready_for_data() {
+                break;
+            }
+        }
         Ok(())
     }
 }

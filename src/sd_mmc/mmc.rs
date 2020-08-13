@@ -109,6 +109,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     }
 
     /// Decode CSD for MMC
+    /// Updates self.version, self.clock, self.capacity
     pub fn mmc_decode_csd(&mut self) -> Result<(), ()> {
         self.version = match self.csd.mmc_csd_spec_version() {
             0 => Mmc(MmcVersion::Mmc_1_2),

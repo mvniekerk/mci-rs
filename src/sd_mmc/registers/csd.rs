@@ -28,6 +28,42 @@ impl From<[u8; 32]> for CsdRegister {
     }
 }
 
+#[cfg(feature = "mmc")]
+pub enum MmcCsdStructureVersion {
+    Unknown = -1,
+    Ver1_0 = 0,
+    Ver1_1 = 1,
+    Ver1_2 = 2
+}
+
+#[cfg(feature = "mmc")]
+impl From<u8> for MmcCsdStructureVersion {
+    fn from(val: u8) -> Self {
+        match val {
+            0 => MmcCsdStructureVersion::Ver1_0,
+            1 => MmcCsdStructureVersion::Ver1_1,
+            2 => MmcCsdStructureVersion::Ver1_2,
+            _ => MmcCsdStructureVersion::Unknown
+        }
+    }
+}
+
+pub enum SdCsdStructureVersion {
+    Unknown = -1,
+    Ver1_0 = 0,
+    Ver2_0 = 1
+}
+
+impl From<u8> for SdCsdStructureVersion {
+    fn from(val: u8) -> Self {
+        match val {
+            0 => SdCsdStructureVersion::Ver1_0,
+            1 => SdCsdStructureVersion::Ver2_0,
+            _ => SdCsdStructureVersion::Unknown
+        }
+    }
+}
+
 impl CsdRegister {
     pub fn set_csd_structure_version(&mut self, version: u8) {
         self.val.set_bits(126..128, version as u32);
@@ -35,6 +71,15 @@ impl CsdRegister {
 
     pub fn csd_structure_version(&self) -> u8 {
         self.val.get_bits(126..128) as u8
+    }
+
+    pub fn sd_csd_structure_version(&self) -> SdCsdStructureVersion {
+        self.csd_structure_version().into()
+    }
+
+    #[cfg(feature = "mmc")]
+    pub fn mmc_csd_structure_version(&self) -> MmcCsdStructureVersion {
+        self.csd_structure_version().into()
     }
 
     pub fn set_mmc_csd_spec_version(&mut self, version: u8) {
