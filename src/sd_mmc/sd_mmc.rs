@@ -213,17 +213,19 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
 
     /// CMD13: Get status register.
     /// Waits for the clear of the busy flag
-    pub fn sd_mmc_cmd13_wait_for_ready_for_data_flag(&mut self) -> Result<(), ()> {
+    pub fn sd_mmc_cmd13_wait_for_ready_for_data_flag(&mut self) -> Result<CardStatusRegister, ()> {
+        let mut status = CardStatusRegister::default();
+        /// TODO maybe proper timeout
         for i in (0..200_000u32).rev() {
             if i == 0 {
                 return Err(()); // TODO proper timeout error
             }
             self.mci.send_command(SDMMC_MCI_CMD13_SEND_STATUS.into(), (self.rca as u32) << 16)?;
-            let ret = CardStatusRegister { val: self.mci.get_response() };
-            if ret.ready_for_data() {
+            status = CardStatusRegister { val: self.mci.get_response() };
+            if status.ready_for_data() {
                 break;
             }
         }
-        Ok(())
+        Ok(status)
     }
 }

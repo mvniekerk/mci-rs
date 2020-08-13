@@ -30,6 +30,7 @@ impl From<u32> for CardStatusState {
     }
 }
 
+#[derive(Default)]
 pub struct CardStatusRegister {
     pub val: u32
 }
