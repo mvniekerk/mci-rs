@@ -1,11 +1,11 @@
 use crate::sd_mmc::mci::Mci;
 use crate::sd_mmc::card_state::CardState;
 use crate::sd_mmc::card_type::CardType;
-use crate::sd_mmc::card_version::CardVersion;
+use crate::sd_mmc::card_version::{CardVersion, SdCardVersion};
 use crate::sd_mmc::sd::sd_bus_width::SdBusWidth;
 use crate::sd_mmc::registers::csd::{CsdRegister, SdCsdStructureVersion};
 use atsamd_hal::hal::digital::v2::InputPin;
-use crate::sd_mmc::commands::{SD_MCI_ACMD41_SD_SEND_OP_COND, SDMMC_CMD55_APP_CMD, SD_CMD6_SWITCH_FUNC, Command, SD_CMD8_SEND_IF_COND, SDMMC_MCI_CMD9_SEND_CSD, SDMMC_MCI_CMD13_SEND_STATUS, SD_ACMD6_SET_BUS_WIDTH};
+use crate::sd_mmc::commands::{SD_MCI_ACMD41_SD_SEND_OP_COND, SDMMC_CMD55_APP_CMD, SD_CMD6_SWITCH_FUNC, Command, SD_CMD8_SEND_IF_COND, SDMMC_MCI_CMD9_SEND_CSD, SDMMC_MCI_CMD13_SEND_STATUS, SD_ACMD6_SET_BUS_WIDTH, SD_ACMD51_SEND_SCR};
 use crate::sd_mmc::registers::ocr::OcrRegister;
 use bit_field::BitField;
 use crate::sd_mmc::registers::registers::{Register, SdMmcRegister};
@@ -16,6 +16,9 @@ use crate::sd_mmc::command::response_type::Response;
 use crate::sd_mmc::command::mmc_commands::BusWidth;
 use crate::sd_mmc::command::sd_commands::Cmd8::Cmd8;
 use crate::sd_mmc::registers::sd::card_status::CardStatusRegister;
+use crate::sd_mmc::registers::sd::scr::ScrRegister;
+use crate::sd_mmc::sd::sd_physical_specification::SdPhysicalSpecification;
+use crate::sd_mmc::card_version::CardVersion::SdCard;
 
 // SD/MMC transfer rate unit codes (10K) list
 pub const SD_MMC_TRANS_UNITS: [u32; 7] = [10, 100, 1_000, 10_000, 0, 0, 0];
@@ -234,6 +237,32 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         self.mci.send_command(SDMMC_CMD55_APP_CMD.into(), (self.rca as u32) << 16)?;
         self.mci.send_command(SD_ACMD6_SET_BUS_WIDTH.into(), 0x2);
         self.bus_width = BusWidth::_4BIT;
+        Ok(())
+    }
+
+    /// Get the SD Card configuration register (ACMD51)
+    pub fn sd_scr(&mut self) -> Result<ScrRegister, ()> {
+        let mut buf = [0u8; 8];
+        self.mci.send_command(SDMMC_CMD55_APP_CMD.into(), (self.rca as u32) << 16)?;
+        self.mci.adtc_start(SD_ACMD51_SEND_SCR.into(), 0, 8, 1, true)?;
+        self.mci.read_blocks(&mut buf, 1)?;
+        self.mci.wait_until_read_finished()?;
+
+        Ok(buf.into())
+    }
+
+    /// ACMD51 - Read the SD Card configuration register (SCR)
+    /// SCR provides information on the SD Memory Card's special features that were configured
+    /// into the given card. The SCR register is 64 bits.
+    /// Updates self.version
+    pub fn sd_acmd51(&mut self) -> Result<(), ()> {
+        let scr = self.sd_scr()?;
+        self.version = match scr.sd_specification_version() {
+            SdPhysicalSpecification::Revision1_01 => SdCard(SdCardVersion::Sd_1_0),
+            SdPhysicalSpecification::Revision1_10 => SdCard(SdCardVersion::Sd_1_10),
+            SdPhysicalSpecification::Revision2_00 => SdCard(SdCardVersion::Sd_2_0),
+            _ => SdCard(SdCardVersion::Sd_1_0)
+        };
         Ok(())
     }
 }

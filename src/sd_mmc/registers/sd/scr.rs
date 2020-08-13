@@ -19,6 +19,21 @@ impl Register<u64> for ScrRegister {
     }
 }
 
+impl From<[u8; 8]> for ScrRegister {
+    fn from(val: [u8; 8]) -> Self {
+        ScrRegister {
+            val: (val[0] as u64) +
+                ((val[1] as u64) << 8) +
+                ((val[2] as u64) << 16) +
+                ((val[3] as u64) << 24) +
+                ((val[4] as u64) << 32) +
+                ((val[5] as u64) << 40) +
+                ((val[6] as u64) << 48) +
+                ((val[7] as u64) << 56)
+        }
+    }
+}
+
 pub enum ScrRegisterStructureVersion {
     Version1_0 = 0
 }
@@ -45,7 +60,7 @@ impl ScrRegister {
         self.val.set_bits(56..=59, version as u64);
     }
 
-    pub fn sd_specification_version(&mut self) -> SdPhysicalSpecification {
+    pub fn sd_specification_version(&self) -> SdPhysicalSpecification {
         (self.val.get_bits(56..=59) as u8).into()
     }
 
