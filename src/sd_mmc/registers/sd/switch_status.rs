@@ -1,6 +1,8 @@
 use crate::sd_mmc::registers::registers::Register;
 use bit_field::{BitField, BitArray};
 
+pub const SD_SW_STATUS_FUN_GRP_RC_ERROR: u16 = 0xF;
+
 pub struct SwitchStatusRegister {
     pub val: [u16; 32]
 }

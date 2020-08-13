@@ -9,7 +9,7 @@ use crate::sd_mmc::commands::{SD_MCI_ACMD41_SD_SEND_OP_COND, SDMMC_CMD55_APP_CMD
 use crate::sd_mmc::registers::ocr::OcrRegister;
 use bit_field::BitField;
 use crate::sd_mmc::registers::registers::{Register, SdMmcRegister};
-use crate::sd_mmc::registers::sd::switch_status::SwitchStatusRegister;
+use crate::sd_mmc::registers::sd::switch_status::{SwitchStatusRegister, SD_SW_STATUS_FUN_GRP_RC_ERROR};
 use crate::sd_mmc::command::sd_commands::cmd6::{Cmd6, Cmd6Mode};
 use crate::sd_mmc::command::flags::CommandFlag;
 use crate::sd_mmc::command::response_type::Response;
@@ -107,7 +107,8 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         mode: Cmd6Mode
     ) -> Result<SwitchStatusRegister, ()>
         where RESPONSE: Response,
-              FLAG: CommandFlag {
+              FLAG: CommandFlag
+    {
         let mut buf = [0u8; 64];
         let mut arg = Cmd6 { val: 0 };
         arg.set_function_group_1_access_mode(grp1_high_speed)
@@ -124,5 +125,32 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
 
         let ret: SwitchStatusRegister = buf.into();
         Ok(ret)
+    }
+
+    /// CMD6 for SD - Switch card in high speed mode
+    /// CMD6 is valid under the trans state
+    /// self.high_speed is updated
+    /// self.clock is updated
+    ///
+    /// True if set to high speed
+    pub fn sd_cmd6_set_to_high_speed_mode(&mut self) -> Result<bool, ()> {
+        let status = self.sd_cmd6(SD_CMD6_SWITCH_FUNC, true, false, true, true, true, true, Cmd6Mode::Switch)?;
+
+        if status.group1_info_status() == SD_SW_STATUS_FUN_GRP_RC_ERROR {
+            // Not supported, not a protocol error
+            return Ok(false);
+        }
+
+        if status.group1_busy() > 0 {
+            return Err(()) // TODO proper error
+        }
+
+        // CMD6 function switching period is within 8 clocks after then bit of status data
+        self.mci.send_clock()?;
+
+        self.high_speed = true;
+        self.clock *= 2;
+
+        Ok(false)
     }
 }
