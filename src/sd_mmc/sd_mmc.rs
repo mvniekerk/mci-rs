@@ -5,7 +5,7 @@ use crate::sd_mmc::card_version::CardVersion;
 use crate::sd_mmc::sd::sd_bus_width::SdBusWidth;
 use crate::sd_mmc::registers::csd::CsdRegister;
 use atsamd_hal::hal::digital::v2::InputPin;
-use crate::sd_mmc::commands::{SD_MCI_ACMD41_SD_SEND_OP_COND, SDMMC_CMD55_APP_CMD, SD_CMD6_SWITCH_FUNC, Command, SD_CMD8_SEND_IF_COND};
+use crate::sd_mmc::commands::{SD_MCI_ACMD41_SD_SEND_OP_COND, SDMMC_CMD55_APP_CMD, SD_CMD6_SWITCH_FUNC, Command, SD_CMD8_SEND_IF_COND, SDMMC_MCI_CMD9_SEND_CSD};
 use crate::sd_mmc::registers::ocr::OcrRegister;
 use bit_field::BitField;
 use crate::sd_mmc::registers::registers::{Register, SdMmcRegister};
@@ -179,5 +179,16 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         }
         // Is a V2
         Ok(true)
+    }
+
+    /// CMD9: Card sends its card specific data (CSD)
+    /// self.csd is updated
+    pub fn sd_mmc_cmd9_mci(&mut self) -> Result<(), ()> {
+        let arg = (self.rca as u32) << 16;
+        self.mci.send_command(SDMMC_MCI_CMD9_SEND_CSD.into(), arg)?;
+        self.csd = CsdRegister {
+            val: self.mci.get_response128()?
+        };
+        Ok(())
     }
 }
