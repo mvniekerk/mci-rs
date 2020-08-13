@@ -36,16 +36,36 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
 
     /// CMD6 for MMC - Switches the bus width mode
     pub fn mmc_cmd6_set_bus_width(&mut self, bus_width: BusWidth) -> Result<bool, ()> {
-        let mut arg = Cmd6 { val: 0 };
+        let mut arg = Cmd6::default();
         arg.set_access(Access::SetBits)
             .set_bus_width(&bus_width)
             .set_mode_index(ModeIndex::BusWidth);
         self.mci.send_command(MMC_CMD6_SWITCH.into(), arg.val)?;
         let ret = CardStatusRegister { val: self.mci.get_response() };
         if ret.switch_error() {
+            // Not supported, not a protocol error
             return Ok(false)
         }
         self.bus_width = bus_width;
+        Ok(true)
+    }
+
+    /// CMD6 for MMC - Switches in high speed mode
+    /// self.high_speed is updated
+    /// self.clock is updated
+    pub fn mmc_cmd6_set_high_speed(&mut self) -> Result<bool, ()> {
+        let mut arg = Cmd6::default();
+        arg.set_access(Access::WriteByte)
+            .set_mode_index(ModeIndex::HsTimingIndex)
+            .set_hs_timing_enable(true);
+        self.mci.send_command(MMC_CMD6_SWITCH.into())?;
+        let ret = CardStatusRegister { val: self.mci.get_response() };
+        if ret.switch_error() {
+            // Not supported, not a protocol error
+            return Ok(false);
+        }
+        self.high_speed = true;
+        self.clock = 52_000_000u32;
         Ok(true)
     }
 }
