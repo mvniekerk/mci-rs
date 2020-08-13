@@ -1,8 +1,11 @@
 use crate::sd_mmc::sd_mmc::{SdMmcCard, ocr_voltage_support};
 use crate::sd_mmc::mci::Mci;
 use atsamd_hal::hal::digital::v2::InputPin;
-use crate::sd_mmc::commands::MMC_MCI_CMD1_SEND_OP_COND;
+use crate::sd_mmc::commands::{MMC_MCI_CMD1_SEND_OP_COND, MMC_CMD6_SWITCH};
 use crate::sd_mmc::registers::ocr::{OcrRegister, AccessMode};
+use crate::sd_mmc::command::mmc_commands::{BusWidth, Cmd6, Access};
+use crate::sd_mmc::mode_index::ModeIndex;
+use crate::sd_mmc::registers::sd::card_status::CardStatusRegister;
 
 impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     where MCI: Mci,
@@ -29,5 +32,20 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             }
         }
         Ok(())
+    }
+
+    /// CMD6 for MMC - Switches the bus width mode
+    pub fn mmc_cmd6_set_bus_width(&mut self, bus_width: BusWidth) -> Result<bool, ()> {
+        let mut arg = Cmd6 { val: 0 };
+        arg.set_access(Access::SetBits)
+            .set_bus_width(&bus_width)
+            .set_mode_index(ModeIndex::BusWidth);
+        self.mci.send_command(MMC_CMD6_SWITCH.into(), arg.val)?;
+        let ret = CardStatusRegister { val: self.mci.get_response() };
+        if ret.switch_error() {
+            return Ok(false)
+        }
+        self.bus_width = bus_width;
+        Ok(true)
     }
 }

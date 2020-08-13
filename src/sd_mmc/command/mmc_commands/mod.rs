@@ -2,6 +2,7 @@ use bit_field::BitField;
 use crate::sd_mmc::mode_index::ModeIndex;
 use core::hint::unreachable_unchecked;
 
+#[derive(Default)]
 pub struct Cmd6 {
     pub val: u32
 }
@@ -47,40 +48,45 @@ impl Cmd6 {
         Cmd6 { val: 0 }
     }
 
-    pub fn set_access(&mut self, access: Access) {
+    pub fn set_access(&mut self, access: Access) -> &mut Self {
         self.val.set_bits(24..=25, access as u32);
+        self
     }
 
     pub fn access(&self) -> Access {
         self.val.get_bits(24..=25).into()
     }
 
-    pub fn set_mode_index(&mut self, mode: ModeIndex) {
+    pub fn set_mode_index(&mut self, mode: ModeIndex) -> &mut Self {
         self.val.set_bits(16..=23, mode as u32);
+        self
     }
 
     pub fn mode_index(&self) -> ModeIndex {
         self.val.get_bits(16..=23).into()
     }
 
-    pub fn set_bus_width(&mut self, bus_width: BusWidth) {
+    pub fn set_bus_width(&mut self, bus_width: &BusWidth) -> &mut Self {
         self.val.set_bits(8..=15, bus_width as u32);
+        self
     }
 
     pub fn bus_width(&self) -> BusWidth {
         self.val.get_bits(8..=15).into()
     }
 
-    pub fn set_hs_timing_enable(&mut self, enabled: bool) {
+    pub fn set_hs_timing_enable(&mut self, enabled: bool) -> &mut Self {
         self.val.set_bits(8..=15, enabled as u32);
+        self
     }
 
     pub fn hs_timing_enabled(&self) -> bool {
         self.val.get_bits(8..=15) > 0
     }
 
-    pub fn set_cmd(&mut self, cmd: u8) {
+    pub fn set_cmd(&mut self, cmd: u8) -> &mut Self {
         self.val.set_bits(0..=2, cmd as u32);
+        self
     }
 
     pub fn cmd(&self) -> u8 {

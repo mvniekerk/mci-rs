@@ -7,10 +7,11 @@ use crate::sd_mmc::registers::ocr::OcrRegister;
 use crate::sd_mmc::registers::registers::Register;
 use crate::sd_mmc::command::sdio_commands::cmd52::{Direction, Cmd52};
 use crate::sd_mmc::registers::sdio::cccr::function_select::FunctionSelection;
-use crate::sd_mmc::registers::sdio::cccr::bus_interface::{BusWidth, BusInterfaceControlRegister};
+use crate::sd_mmc::registers::sdio::cccr::bus_interface::{BusInterfaceControlRegister};
 use crate::sd_mmc::registers::sdio::cccr::card_capability::CardCapabilityRegister;
 use crate::sd_mmc::sd::sd_bus_width::SdBusWidth;
 use crate::sd_mmc::registers::sdio::cccr::high_speed::HighSpeedRegister;
+use crate::sd_mmc::command::mmc_commands::BusWidth;
 
 impl SdioDevice {
 
@@ -177,7 +178,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         let mut bus_ctrl = BusInterfaceControlRegister { val: 0 };
         bus_ctrl.set_bus_width(BusWidth::_4bit);
         self.sdio_cmd52(Direction::Write, FunctionSelection::FunctionCia0, BusInterfaceControlRegister::address() as u32, true, bus_ctrl.value())?;
-        self.bus_width = SdBusWidth::_4bit; // TODO : Check difference between BusWidth enums and consolidate
+        self.bus_width = ::_4bit;
         Ok(BusWidth::_4bit)
     }
 

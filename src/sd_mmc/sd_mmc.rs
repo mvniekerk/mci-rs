@@ -13,6 +13,7 @@ use crate::sd_mmc::registers::sd::switch_status::{SwitchStatusRegister, SD_SW_ST
 use crate::sd_mmc::command::sd_commands::cmd6::{Cmd6, Cmd6Mode};
 use crate::sd_mmc::command::flags::CommandFlag;
 use crate::sd_mmc::command::response_type::Response;
+use crate::sd_mmc::command::mmc_commands::BusWidth;
 
 // SD/MMC transfer rate unit codes (10K) list
 pub const SD_MMC_TRANS_UNITS: [u32; 7] = [10, 100, 1_000, 10_000, 0, 0, 0];
@@ -41,7 +42,7 @@ pub struct SdMmcCard<MCI, WP, DETECT>
     /// Card version
     pub version: CardVersion,
     /// Number of DATA lines on bus (MCI only)
-    pub bus_width: SdBusWidth,
+    pub bus_width: BusWidth,
     /// CSD register
     pub csd: CsdRegister,
     /// High speed card
