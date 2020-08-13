@@ -161,7 +161,6 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     /// voltage information and asks the card whether card supports voltage.
     /// Should be performed at initialization time to detect the card type.
     ///
-
     pub fn sd_cmd8_is_v2(&mut self) -> Result<bool, ()> {
         let mut arg = Cmd8::default();
         arg.set_cmd8_pattern(true)

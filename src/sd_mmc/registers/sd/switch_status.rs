@@ -21,7 +21,7 @@ impl From<[u8; 64]> for SwitchStatusRegister {
     fn from(val: [u8; 64]) -> Self {
         let mut v = [0u16; 32];
         for i in 0..64 {
-            v[i / 2] = (val[i] as u16) << ((i % 2) * 8);
+            v[i / 2] |= (val[i] as u16) << ((i % 2) * 8);
         }
         SwitchStatusRegister {
             val: v
