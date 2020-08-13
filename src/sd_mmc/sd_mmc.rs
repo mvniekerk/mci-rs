@@ -187,7 +187,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         let arg = (self.rca as u32) << 16;
         self.mci.send_command(SDMMC_MCI_CMD9_SEND_CSD.into(), arg)?;
         self.csd = CsdRegister {
-            val: self.mci.get_response128()?
+            val: self.mci.get_response128()
         };
         Ok(())
     }

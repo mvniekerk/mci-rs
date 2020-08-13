@@ -255,11 +255,13 @@ impl Mci for AtsamdMci {
         self.sdhc.rr[0].read().cmdresp().bits()
     }
 
-    fn get_response128(&mut self) -> u128 {
-        (self.sdhc.rr[0].read().cmdresp().bits() as u128) +
-        ((self.sdhc.rr[1].read().cmdresp().bits() as u128) << 32) +
-        ((self.sdhc.rr[2].read().cmdresp().bits() as u128) << 64) +
-        ((self.sdhc.rr[3].read().cmdresp().bits() as u128) << 96)
+    fn get_response128(&mut self) -> [u32; 4] {
+        [
+            self.sdhc.rr[0].read().cmdresp().bits(),
+            self.sdhc.rr[1].read().cmdresp().bits(),
+            self.sdhc.rr[2].read().cmdresp().bits(),
+            self.sdhc.rr[3].read().cmdresp().bits()
+        ]
     }
 
     fn adtc_start(&mut self, command: u32, argument: u32, block_size: u16, block_amount: u16, access_in_blocks: bool) -> Result<(), ()> {

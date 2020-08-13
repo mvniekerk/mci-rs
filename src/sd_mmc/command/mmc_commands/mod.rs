@@ -43,6 +43,16 @@ impl From<u32> for BusWidth {
     }
 }
 
+impl From<&BusWidth> for u32 {
+    fn from(val: &BusWidth) -> Self {
+        match val {
+            BusWidth::_1BIT => 0,
+            BusWidth::_4BIT => 1,
+            BusWidth::_8BIT => 2
+        }
+    }
+}
+
 impl Cmd6 {
     pub fn new() -> Cmd6 {
         Cmd6 { val: 0 }
@@ -67,7 +77,7 @@ impl Cmd6 {
     }
 
     pub fn set_bus_width(&mut self, bus_width: &BusWidth) -> &mut Self {
-        self.val.set_bits(8..=15, bus_width as u32);
+        self.val.set_bits(8..=15, bus_width.into());
         self
     }
 

@@ -28,7 +28,7 @@ pub trait Mci {
     fn get_response(&mut self) -> u32;
 
     /// Get 128 bits response of last command
-    fn get_response128(&mut self) -> u128;
+    fn get_response128(&mut self) -> [u32; 4];
 
     /// ADTC command start
     /// An ADTC (Addressed Data Transfer Commands) is used for R/W access

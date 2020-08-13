@@ -167,19 +167,20 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     // 	SDIO Full-Speed alone always supports 4bit
     // 	SDIO Low-Speed alone can support 4bit (Optional)
     pub fn sdio_cmd52_switch_to_4_bus_width_mode(&mut self) -> Result<BusWidth, ()> {
+        use crate::sd_mmc::registers::sdio::cccr::bus_interface::BusWidth as SdioBusWidth;
         let mut cccr_cap = CardCapabilityRegister { val:
             self.sdio_cmd52(
                 Direction::Read, FunctionSelection::FunctionCia0, CardCapabilityRegister::address() as u32, false, 0
             )?
         };
         if !cccr_cap.low_speed_card_supports_4bit_mode() {
-            return Ok(BusWidth::_1bit);
+            return Ok(BusWidth::_1BIT);
         }
         let mut bus_ctrl = BusInterfaceControlRegister { val: 0 };
-        bus_ctrl.set_bus_width(BusWidth::_4bit);
+        bus_ctrl.set_bus_width(SdioBusWidth::_4bit);
         self.sdio_cmd52(Direction::Write, FunctionSelection::FunctionCia0, BusInterfaceControlRegister::address() as u32, true, bus_ctrl.value())?;
-        self.bus_width = ::_4bit;
-        Ok(BusWidth::_4bit)
+        self.bus_width = BusWidth::_4BIT;
+        Ok(BusWidth::_4BIT)
     }
 
     /// Enable High Speed mode
