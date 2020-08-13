@@ -5,7 +5,7 @@ use crate::sd_mmc::card_version::CardVersion;
 use crate::sd_mmc::sd::sd_bus_width::SdBusWidth;
 use crate::sd_mmc::registers::csd::CsdRegister;
 use atsamd_hal::hal::digital::v2::InputPin;
-use crate::sd_mmc::commands::{SD_MCI_ACMD41_SD_SEND_OP_COND, SDMMC_CMD55_APP_CMD, SD_CMD6_SWITCH_FUNC, Command};
+use crate::sd_mmc::commands::{SD_MCI_ACMD41_SD_SEND_OP_COND, SDMMC_CMD55_APP_CMD, SD_CMD6_SWITCH_FUNC, Command, SD_CMD8_SEND_IF_COND};
 use crate::sd_mmc::registers::ocr::OcrRegister;
 use bit_field::BitField;
 use crate::sd_mmc::registers::registers::{Register, SdMmcRegister};
@@ -14,6 +14,7 @@ use crate::sd_mmc::command::sd_commands::cmd6::{Cmd6, Cmd6Mode};
 use crate::sd_mmc::command::flags::CommandFlag;
 use crate::sd_mmc::command::response_type::Response;
 use crate::sd_mmc::command::mmc_commands::BusWidth;
+use crate::sd_mmc::command::sd_commands::Cmd8::Cmd8;
 
 // SD/MMC transfer rate unit codes (10K) list
 pub const SD_MMC_TRANS_UNITS: [u32; 7] = [10, 100, 1_000, 10_000, 0, 0, 0];
@@ -153,5 +154,31 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         self.clock *= 2;
 
         Ok(false)
+    }
+
+    /// CMD8 for SD card - send interface condition command
+    /// Send SD Memory Card interface condition, which includes host supply
+    /// voltage information and asks the card whether card supports voltage.
+    /// Should be performed at initialization time to detect the card type.
+    ///
+
+    pub fn sd_cmd8_is_v2(&mut self) -> Result<bool, ()> {
+        let mut arg = Cmd8::default();
+        arg.set_cmd8_pattern(true)
+            .set_high_voltage(true);
+
+        if self.mci.send_command(SD_CMD8_SEND_IF_COND.into(), arg.val as u32).is_err() {
+            return Ok(false) // Not V2
+        }
+        let ret = self.mci.get_response();
+        if ret == 0xFFFF_FFFF {
+            // No compliance R7 value
+            return Ok(false)
+        }
+        if ret != arg.val as u32 {
+            return Err(()) // TODO special error
+        }
+        // Is a V2
+        Ok(true)
     }
 }
