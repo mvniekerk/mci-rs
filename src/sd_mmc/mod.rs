@@ -1,3 +1,4 @@
+pub mod transfer;
 pub mod dummy_input_pin;
 #[cfg(feature = "mmc")]
 pub mod mmc;

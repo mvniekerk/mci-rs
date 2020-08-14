@@ -5,7 +5,7 @@ use crate::sd_mmc::card_version::{CardVersion, SdCardVersion};
 use crate::sd_mmc::sd::sd_bus_width::SdBusWidth;
 use crate::sd_mmc::registers::csd::{CsdRegister, SdCsdStructureVersion};
 use atsamd_hal::hal::digital::v2::InputPin;
-use crate::sd_mmc::commands::{SD_MCI_ACMD41_SD_SEND_OP_COND, SDMMC_CMD55_APP_CMD, SD_CMD6_SWITCH_FUNC, Command, SD_CMD8_SEND_IF_COND, SDMMC_MCI_CMD9_SEND_CSD, SDMMC_MCI_CMD13_SEND_STATUS, SD_ACMD6_SET_BUS_WIDTH, SD_ACMD51_SEND_SCR};
+use crate::sd_mmc::commands::{SD_MCI_ACMD41_SD_SEND_OP_COND, SDMMC_CMD55_APP_CMD, SD_CMD6_SWITCH_FUNC, Command, SD_CMD8_SEND_IF_COND, SDMMC_MCI_CMD9_SEND_CSD, SDMMC_MCI_CMD13_SEND_STATUS, SD_ACMD6_SET_BUS_WIDTH, SD_ACMD51_SEND_SCR, SDMMC_CMD18_READ_MULTIPLE_BLOCK, SDMMC_CMD17_READ_SINGLE_BLOCK};
 use crate::sd_mmc::registers::ocr::OcrRegister;
 use bit_field::BitField;
 use crate::sd_mmc::registers::registers::{Register, SdMmcRegister};
@@ -19,6 +19,8 @@ use crate::sd_mmc::registers::sd::card_status::CardStatusRegister;
 use crate::sd_mmc::registers::sd::scr::ScrRegister;
 use crate::sd_mmc::sd::sd_physical_specification::SdPhysicalSpecification;
 use crate::sd_mmc::card_version::CardVersion::SdCard;
+use crate::sd_mmc::mmc::SD_MMC_BLOCK_SIZE;
+use crate::sd_mmc::transfer::TransferTransaction;
 
 // SD/MMC transfer rate unit codes (10K) list
 pub const SD_MMC_TRANS_UNITS: [u32; 7] = [10, 100, 1_000, 10_000, 0, 0, 0];
@@ -325,5 +327,26 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         }
         self.sd_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
         if self.state == CardState::Init { Ok(())} else { Ok(()) }  // TODO if it is still ongoing should return ongoing
+    }
+
+    pub fn write_protected(&self) -> Result<bool, ()> {
+        let level = self.wp.is_high().map_err(|_| ())?; //TODO proper error for pin fault
+        Ok(level == self.wp_high_activated)
+    }
+
+    pub fn sd_mmc_init_read_blocks(&mut self, start: u32, blocks_amount: u16) -> Result<TransferTransaction, ()> {
+        self.sd_mmc_select_slot()?;
+        // Wait for data status
+        self.sd_mmc_cmd13_get_status_and_wait_for_ready_for_data_flag()?;
+        let cmd: u32 = if blocks_amount > 1 { SDMMC_CMD18_READ_MULTIPLE_BLOCK.into() } else { SDMMC_CMD17_READ_SINGLE_BLOCK.into() };
+
+        // SDSC Card (CCS=0) uses byte unit address,
+        // SDHC and SDXC Cards (CCS=1) use block unit address (512 Bytes unit).
+        let arg = if self.card_type.high_capacity() { start } else { start * SD_MMC_BLOCK_SIZE };
+        self.mci.adtc_start(cmd, arg, SD_MMC_BLOCK_SIZE as u16, blocks_amount, true)?;
+        Ok(TransferTransaction {
+            amount: blocks_amount,
+            remaining: blocks_amount
+        })
     }
 }
