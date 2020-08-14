@@ -1,3 +1,4 @@
+pub mod dummy_input_pin;
 #[cfg(feature = "mmc")]
 pub mod mmc;
 pub mod card_state;

@@ -10,7 +10,7 @@ pub trait Mci {
     fn deinit(&mut self) -> Result<(), ()>;
 
     /// Select a device and initialize it
-    fn select_device(&mut self, slot: u8, clock: u32, bus_width: BusWidth, high_speed: bool) -> Result<(), ()>;
+    fn select_device(&mut self, slot: u8, clock: u32, bus_width: &BusWidth, high_speed: bool) -> Result<(), ()>;
 
     /// Deselect device
     fn deselect_device(&mut self) -> Result<(), ()>;

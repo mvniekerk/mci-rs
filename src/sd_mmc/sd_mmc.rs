@@ -34,7 +34,7 @@ pub struct SdMmcCard<MCI, WP, DETECT>
 {
     /// Hardware interface
     pub mci: MCI,
-    /// Card access clock
+    /// Card access clock. Defaults to 400khz
     pub clock: u32,
     /// Card capacity in KBytes
     pub capacity: u32,
@@ -52,9 +52,16 @@ pub struct SdMmcCard<MCI, WP, DETECT>
     pub csd: CsdRegister,
     /// High speed card
     pub high_speed: bool,
+    /// This card's slot number
+    pub slot: u8,
     /// Write protect pin
     pub wp: WP,
-    pub detect: DETECT
+    /// Whether a pulled high pin is logic true that write protection is activated
+    pub wp_high_activated: bool,
+    /// Card detection pin
+    pub detect: DETECT,
+    /// Whether a pulled high pin is logic true that a card is detected
+    pub detect_high_activated: bool
 }
 
 pub fn ocr_voltage_support() -> OcrRegister {
@@ -73,6 +80,27 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     WP: InputPin,
     DETECT: InputPin
 {
+    /// Create a new SD MMC instance
+    pub fn new(mci: MCI, write_protect_pin: WP, wp_high_activated: bool, detect_pin: DETECT, detect_high_activated: bool, slot: u8) -> Self {
+        SdMmcCard {
+            mci,
+            clock: 400_000,
+            capacity: 0,
+            rca: 0,
+            state: CardState::NoCard,
+            card_type: CardType { val: 0 },
+            version: CardVersion::Unknown,
+            bus_width: BusWidth::_1BIT,
+            csd: Default::default(),
+            high_speed: false,
+            slot,
+            wp: write_protect_pin,
+            wp_high_activated,
+            detect: detect_pin,
+            detect_high_activated
+        }
+    }
+
     /// Ask to all cards to send their operations conditions (MCI only).
     /// # Arguments
     /// * `v2` Shall be true if it is a SD card V2
@@ -264,5 +292,38 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             _ => SdCard(SdCardVersion::Sd_1_0)
         };
         Ok(())
+    }
+
+    pub fn sd_select_this_device_on_mci(&mut self) -> Result<(), ()> {
+        self.mci.select_device(self.slot, self.clock, &self.bus_width, self.high_speed) // TODO proper error
+    }
+
+    /// Select this instance's card slot and initialize the associated driver
+    pub fn sd_mmc_select_slot(&mut self) -> Result<(), ()> {
+        // Check card detection
+        if self.wp.is_high().map_err(|_| ())? != self.wp_high_activated {   // TODO proper error for pin check
+            if self.state == CardState::Debounce {
+                // TODO Timeout stop?
+            }
+            self.state = CardState::NoCard;
+            return Err(()); // TODO no card error
+        }
+
+        if self.state == CardState::Debounce {
+            if false {
+                // TODO check if timed out
+                return Err(()) // TODO proper timeout
+            }
+            self.state = CardState::Init;
+            // Set 1-bit bus width and low clock for initialization
+            self.clock = 400_000;
+            self.bus_width = BusWidth::_1BIT;
+            self.high_speed = false;
+        }
+        if self.state == CardState::Unusable {
+            return Err(())  // TODO proper error
+        }
+        self.sd_select_this_device_on_mci()?; // TODO proper error
+        if self.state == CardState::Init { Ok(())} else { Ok(()) }  // TODO if it is still ongoing should return ongoing
     }
 }

@@ -205,7 +205,7 @@ impl Mci for AtsamdMci {
         Ok(())
     }
 
-    fn select_device(&mut self, _slot: u8, clock: u32, bus_width: BusWidth, high_speed: bool) -> Result<(), ()> {
+    fn select_device(&mut self, _slot: u8, clock: u32, bus_width: &BusWidth, high_speed: bool) -> Result<(), ()> {
         self.sdhc.hc1r().modify(|_, w| {
             if high_speed {
                 w.hsen().set_bit()
