@@ -1,6 +1,6 @@
 use core::hint::unreachable_unchecked;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, PartialOrd, Copy, Clone)]
 pub enum SdCardVersion {
     // version 1.0 and 1.01
     Sd_1_0  = 0x10,
@@ -12,7 +12,7 @@ pub enum SdCardVersion {
     SdMmc_3_0  = 0x30,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, PartialOrd, Copy, Clone)]
 pub enum MmcVersion {
     // MMC version 1.2
     Mmc_1_2 = 0x12,
@@ -36,6 +36,7 @@ impl Into<Option<MmcVersion>> for SdCardVersion {
     }
 }
 
+#[derive(Copy, Clone)]
 pub enum CardVersion {
     // Unknown card version
     Unknown,

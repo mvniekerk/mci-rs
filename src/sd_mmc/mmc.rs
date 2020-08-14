@@ -155,7 +155,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         self.mci.send_command(SDMMC_MCI_CMD0_GO_IDLE_STATE.into(), 0)?;
         self.mmc_mci_send_operation_condition()?;
 
-        // Put the card in Indentify Mode
+        // Put the card in Identify Mode
         // Note: The CID is not used
         self.mci.send_command(SDMMC_CMD2_ALL_SEND_CID.into(), 0);
 
@@ -171,13 +171,14 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         self.mci.send_command(SDMMC_CMD7_SELECT_CARD_CMD.into(), (self.rca as u32) << 16)?;
 
         let version: usize = self.version.into();
-        if version >= MmcVersion::Mmc_4.into() {
+        if version >= MmcVersion::Mmc_4 as usize {
             // For MMC 4.0 Higher version
             // Get EXT_CSD
             let authorize_high_speed = self.mmc_cmd8_high_speed_capable_and_update_capacity()?;
-            if 4 <= self.mci.get_bus_width(self.slot) {
+            if BusWidth::_4BIT <= self.mci.get_bus_width(self.slot)? {
                 // Enable more bus width
-                self.mmc_cmd6_set_bus_width(&self.bus_width);
+                let bus_width = self.bus_width;
+                self.mmc_cmd6_set_bus_width(&bus_width);
                 self.sd_select_this_device_on_mci_and_configure_mci()?;
             }
             if self.mci.is_high_speed_capable()? && authorize_high_speed {
