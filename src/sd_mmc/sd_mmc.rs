@@ -294,7 +294,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         Ok(())
     }
 
-    pub fn sd_select_this_device_on_mci(&mut self) -> Result<(), ()> {
+    pub fn sd_select_this_device_on_mci_and_configure_mci(&mut self) -> Result<(), ()> {
         self.mci.select_device(self.slot, self.clock, &self.bus_width, self.high_speed) // TODO proper error
     }
 
@@ -323,7 +323,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         if self.state == CardState::Unusable {
             return Err(())  // TODO proper error
         }
-        self.sd_select_this_device_on_mci()?; // TODO proper error
+        self.sd_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
         if self.state == CardState::Init { Ok(())} else { Ok(()) }  // TODO if it is still ongoing should return ongoing
     }
 }

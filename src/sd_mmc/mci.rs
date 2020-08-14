@@ -1,5 +1,6 @@
 use crate::sd_mmc::command::mmc_commands::BusWidth;
 
+// TODO keep + get current selected slot
 pub trait Mci {
     /// Initialize MCI low level driver.
     fn init(&mut self) -> Result<(), ()>;

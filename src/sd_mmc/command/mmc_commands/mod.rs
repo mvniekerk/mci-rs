@@ -26,6 +26,7 @@ impl From<u32> for Access {
     }
 }
 
+#[derive(Copy, Clone)]
 pub enum BusWidth {
     _1BIT = 0,
     _4BIT = 1,

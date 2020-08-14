@@ -43,6 +43,16 @@ pub enum CardVersion {
     Mmc(MmcVersion)
 }
 
+impl From<CardVersion> for usize {
+    fn from(val: CardVersion) -> Self {
+        match val {
+            CardVersion::Unknown => 0,
+            CardVersion::SdCard(sdcard) => sdcard as usize,
+            CardVersion::Mmc(mmc) => mmc as usize
+        }
+    }
+}
+
 impl From<u8> for CardVersion {
     fn from(val: u8) -> Self {
         match val {

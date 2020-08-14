@@ -1,7 +1,7 @@
 use crate::sd_mmc::sd_mmc::{SdMmcCard, ocr_voltage_support, SD_MMC_TRANS_UNITS, MMC_TRANS_MULTIPLIERS};
 use crate::sd_mmc::mci::Mci;
 use atsamd_hal::hal::digital::v2::InputPin;
-use crate::sd_mmc::commands::{MMC_MCI_CMD1_SEND_OP_COND, MMC_CMD6_SWITCH, MMC_CMD8_SEND_EXT_CSD};
+use crate::sd_mmc::commands::{MMC_MCI_CMD1_SEND_OP_COND, MMC_CMD6_SWITCH, MMC_CMD8_SEND_EXT_CSD, SDMMC_MCI_CMD0_GO_IDLE_STATE, SDMMC_CMD2_ALL_SEND_CID, MMC_CMD3_SET_RELATIVE_ADDR, SDMMC_CMD7_SELECT_CARD_CMD, SDMMC_CMD16_SET_BLOCKLEN};
 use crate::sd_mmc::registers::ocr::{OcrRegister, AccessMode};
 use crate::sd_mmc::command::mmc_commands::{BusWidth, Cmd6, Access};
 use crate::sd_mmc::mode_index::ModeIndex;
@@ -14,6 +14,7 @@ use crate::sd_mmc::card_version::MmcVersion;
 pub const EXT_CSD_CARD_TYPE_INDEX: u32 = 196;
 pub const EXT_CSD_SEC_COUNT_INDEX: u32 = 212;
 pub const EXT_CSD_BSIZE: u32 = 512;
+pub const SD_MMC_BLOCK_SIZE: u32 = 512;
 
 impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     where MCI: Mci,
@@ -43,7 +44,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     }
 
     /// CMD6 for MMC - Switches the bus width mode
-    pub fn mmc_cmd6_set_bus_width(&mut self, bus_width: BusWidth) -> Result<bool, ()> {
+    pub fn mmc_cmd6_set_bus_width(&mut self, bus_width: &BusWidth) -> Result<bool, ()> {
         let mut arg = Cmd6::default();
         arg.set_access(Access::SetBits)
             .set_bus_width(&bus_width)
@@ -54,7 +55,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             // Not supported, not a protocol error
             return Ok(false)
         }
-        self.bus_width = bus_width;
+        self.bus_width = bus_width.clone();
         Ok(true)
     }
 
@@ -143,5 +144,56 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             self.capacity = block_nr * (1 << self.csd.read_bl_length() as u32) / 1024;
         }
         Ok(())
+    }
+
+    /// Initialize the MMC card in MCI mode
+    /// This function runs the initialization procedure and the identification process, then it
+    /// sets the SD/MMC card in transfer state.
+    /// At last, it will enable maximum bus width and transfer speed.
+    pub fn sd_mmc_mci_install_mmc(&mut self) -> Result<(), ()> {
+        // CMD0 - Reset all cards to idle state.
+        self.mci.send_command(SDMMC_MCI_CMD0_GO_IDLE_STATE.into(), 0)?;
+        self.mmc_mci_send_operation_condition()?;
+
+        // Put the card in Indentify Mode
+        // Note: The CID is not used
+        self.mci.send_command(SDMMC_CMD2_ALL_SEND_CID.into(), 0);
+
+        //Assign relative address to the card
+        self.rca = 1;
+        self.mci.send_command(MMC_CMD3_SET_RELATIVE_ADDR.into(), (self.rca as u32) << 16)?;
+
+        // Get the card specific data
+        self.sd_mmc_cmd9_mci()?;
+        self.mmc_decode_csd()?;
+
+        // Select the card and put it into Transfer mode
+        self.mci.send_command(SDMMC_CMD7_SELECT_CARD_CMD.into(), (self.rca as u32) << 16)?;
+
+        let version: usize = self.version.into();
+        if version >= MmcVersion::Mmc_4.into() {
+            // For MMC 4.0 Higher version
+            // Get EXT_CSD
+            let authorize_high_speed = self.mmc_cmd8_high_speed_capable_and_update_capacity()?;
+            if 4 <= self.mci.get_bus_width(self.slot) {
+                // Enable more bus width
+                self.mmc_cmd6_set_bus_width(&self.bus_width);
+                self.sd_select_this_device_on_mci_and_configure_mci()?;
+            }
+            if self.mci.is_high_speed_capable()? && authorize_high_speed {
+                self.mmc_cmd6_set_high_speed()?;
+                self.sd_select_this_device_on_mci_and_configure_mci()?;
+            }
+        } else {
+            self.sd_select_this_device_on_mci_and_configure_mci()?;
+        }
+        for _ in 0..10 {
+            // Retry is a workaround for no compliance card (Atmel Internal ref. MMC19)
+            // These cards seem not ready immediately after the end of busy of mmc_cmd6_set_high_speed
+            if self.mci.send_command(SDMMC_CMD16_SET_BLOCKLEN.into(), SD_MMC_BLOCK_SIZE).is_ok() {
+                return Ok(())
+            }
+        }
+        Err(()) // TODO proper timeout error
     }
 }
