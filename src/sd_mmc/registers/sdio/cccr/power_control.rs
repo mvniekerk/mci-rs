@@ -1,4 +1,4 @@
-use crate::sd_mmc::registers::registers::Register;
+use crate::sd_mmc::registers::register::Register;
 use bit_field::BitField;
 
 pub struct PowerControlRegister {

@@ -18,7 +18,7 @@ use crate::sd_mmc::mci::Mci;
 use crate::sd_mmc::mmc::SD_MMC_BLOCK_SIZE;
 use crate::sd_mmc::registers::csd::{CsdRegister, SdCsdStructureVersion};
 use crate::sd_mmc::registers::ocr::OcrRegister;
-use crate::sd_mmc::registers::registers::Register;
+use crate::sd_mmc::registers::register::Register;
 use crate::sd_mmc::registers::sd::card_status::CardStatusRegister;
 use crate::sd_mmc::registers::sd::scr::ScrRegister;
 use crate::sd_mmc::registers::sd::switch_status::{

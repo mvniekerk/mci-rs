@@ -1,4 +1,4 @@
-use crate::sd_mmc::registers::registers::Register;
+use crate::sd_mmc::registers::register::Register;
 use crate::sd_mmc::sd::sd_bus_width::SdBusWidth;
 use crate::sd_mmc::sd::sd_physical_specification::SdPhysicalSpecification;
 use crate::sd_mmc::sd::sd_security::SdSecurity;

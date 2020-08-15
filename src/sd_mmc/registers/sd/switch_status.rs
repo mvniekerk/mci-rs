@@ -1,4 +1,4 @@
-use crate::sd_mmc::registers::registers::Register;
+use crate::sd_mmc::registers::register::Register;
 use bit_field::BitArray;
 
 pub const SD_SW_STATUS_FUN_GRP_RC_ERROR: u16 = 0xF;

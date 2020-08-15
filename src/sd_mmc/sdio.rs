@@ -7,7 +7,7 @@ use crate::sd_mmc::commands::{
 };
 use crate::sd_mmc::mci::Mci;
 use crate::sd_mmc::registers::ocr::OcrRegister;
-use crate::sd_mmc::registers::registers::Register;
+use crate::sd_mmc::registers::register::Register;
 use crate::sd_mmc::registers::sdio::cccr::bus_interface::BusInterfaceControlRegister;
 use crate::sd_mmc::registers::sdio::cccr::card_capability::CardCapabilityRegister;
 use crate::sd_mmc::registers::sdio::cccr::function_select::FunctionSelection;

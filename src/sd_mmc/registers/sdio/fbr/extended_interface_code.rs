@@ -1,4 +1,4 @@
-use crate::sd_mmc::registers::registers::Register;
+use crate::sd_mmc::registers::register::Register;
 
 pub struct ExtendedInterfaceCodeRegister {
     pub val: u8,
