@@ -22,7 +22,6 @@ pub const SDIO_CCCR_CIS_PTR: u32 = 0x09;
 pub const SDIO_CISTPL_END: u8 = 0xFF;
 pub const SDIO_CISTPL_FUNCE: u8 = 0x22;
 
-
 impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     where MCI: Mci,
     WP: InputPin,
@@ -230,5 +229,28 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             .set_function_number(function as u8)
             .set_direction(direction);
         self.mci.adtc_start(command, arg.val, data_size, 1, access_block)
+    }
+
+    pub fn sdio_read_direct(&mut self, function: FunctionSelection, address: u32) -> Result<u8, ()> {
+        self.sd_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
+        self.sdio_cmd52(Direction::Read, function, address, false, 0)
+    }
+
+    pub fn sdio_write_direct(&mut self, function: FunctionSelection, address: u32, data: u8) -> Result<(), ()> {
+        self.sd_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
+        self.sdio_cmd52(Direction::Write, function, address, false, data).map(|_| ())   // TODO proper error
+    }
+
+    pub fn sdio_read_extended(&mut self, function: FunctionSelection, address: u16, increment_address: bool, destination: &mut [u8], size: u16) -> Result<(), ()> {
+        self.sd_select_this_device_on_mci_and_configure_mci()?;
+        self.sdio_cmd53_io_rw_extended(Direction::Read, function, address, increment_address, size, true)?; // TODO proper error
+        self.mci.read_blocks(destination,1)?;   // TODO proper error
+        self.mci.wait_until_read_finished() // TODO proper error
+    }
+
+    pub fn sdio_write_extended(&mut self, function: FunctionSelection, address: u16, increment_address: bool, source: &[u8], size: u16) -> Result<(), ()> {
+        self.sd_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
+        self.sdio_cmd53_io_rw_extended(Direction::Write, function, address, increment_address, size, true)?; // TODO proper error
+        self.mci.wait_until_write_finished() // TODO proper error
     }
 }
