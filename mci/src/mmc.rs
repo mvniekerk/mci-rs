@@ -11,7 +11,7 @@ use crate::mode_index::ModeIndex;
 use crate::registers::ocr::{AccessMode, OcrRegister};
 use crate::registers::sd::card_status::CardStatusRegister;
 use crate::sd_mmc::{
-    ocr_voltage_support, SdMmcCard, MMC_TRANS_MULTIPLIERS, SD_MMC_TRANS_UNITS,
+    ocr_voltage_support, MciCard, MMC_TRANS_MULTIPLIERS, SD_MMC_TRANS_UNITS,
 };
 use bit_field::BitField;
 use embedded_hal::digital::v2::InputPin;
@@ -21,7 +21,7 @@ pub const EXT_CSD_SEC_COUNT_INDEX: u32 = 212;
 pub const EXT_CSD_BSIZE: u32 = 512;
 pub const SD_MMC_BLOCK_SIZE: u32 = 512;
 
-impl<MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
+impl<MCI, WP, DETECT> MciCard<MCI, WP, DETECT>
 where
     MCI: Mci,
     WP: InputPin,     // Write protect pin

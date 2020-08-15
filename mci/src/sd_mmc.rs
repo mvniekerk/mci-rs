@@ -40,7 +40,7 @@ pub const MMC_TRANS_MULTIPLIERS: [u32; 16] = [
     0, 10, 12, 13, 15, 20, 26, 30, 35, 40, 45, 52, 55, 60, 70, 80,
 ];
 
-pub struct SdMmcCard<MCI, WP, DETECT>
+pub struct MciCard<MCI, WP, DETECT>
 where
     MCI: Mci,
     WP: InputPin,     // Write protect pin
@@ -89,7 +89,7 @@ pub fn ocr_voltage_support() -> OcrRegister {
     ocr
 }
 
-impl<MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
+impl<MCI, WP, DETECT> MciCard<MCI, WP, DETECT>
 where
     MCI: Mci,
     WP: InputPin,
@@ -104,7 +104,7 @@ where
         detect_high_activated: bool,
         slot: u8,
     ) -> Self {
-        SdMmcCard {
+        MciCard {
             mci,
             clock: 400_000,
             capacity: 0,
