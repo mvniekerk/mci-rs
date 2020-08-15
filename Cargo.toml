@@ -1,5 +1,5 @@
 [package]
-name = "atsam_sdio_sdmmc"
+name = "mci"
 version = "0.0.0"
 authors = ["Michael van Niekerk <mvniekerk@chazaqdev.com>"]
 edition = "2018"

@@ -127,7 +127,7 @@ where
     /// # Arguments
     /// * `v2` Shall be true if it is a SD card V2
     pub fn sd_mci_operations_conditions(&mut self, v2: bool) -> Result<(), ()> {
-        // Timeout 1s = 400KHz / ((6+6+6+6)*8) cylces = 2100 retry
+        // Timeout 1s = 400KHz / ((6+6+6+6)*8) cycles = 2100 retry
         for i in (0..2100).rev() {
             if i == 0 {
                 return Err(()); // TODO Proper error
