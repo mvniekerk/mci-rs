@@ -41,7 +41,7 @@ impl Register<u32> for CardStatusRegister {
     }
 
     fn address() -> u8 {
-        0x0
+        unimplemented!()
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::sd_mmc::registers::registers::SdMmcRegister;
+use crate::sd_mmc::registers::registers::Register;
 use bit_field::BitField;
 
 pub struct Cmd6 {
@@ -27,12 +27,12 @@ impl From<bool> for Cmd6Mode {
     }
 }
 
-impl SdMmcRegister<u32> for Cmd6 {
+impl Register<u32> for Cmd6 {
     fn value(&self) -> u32 {
         self.val
     }
 
-    fn address() -> u32 {
+    fn address() -> u8 {
         6
     }
 }
@@ -64,7 +64,7 @@ impl Cmd6 {
     }
 
     pub fn function_group3(&self) -> bool {
-        self.val.get_bits(8..=1) == 0xF
+        self.val.get_bits(8..=11) == 0xF
     }
 
     pub fn set_function_group4(&mut self, no_influence: bool) -> &mut Self {

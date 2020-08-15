@@ -18,7 +18,7 @@ use crate::sd_mmc::mci::Mci;
 use crate::sd_mmc::mmc::SD_MMC_BLOCK_SIZE;
 use crate::sd_mmc::registers::csd::{CsdRegister, SdCsdStructureVersion};
 use crate::sd_mmc::registers::ocr::OcrRegister;
-use crate::sd_mmc::registers::registers::{Register, SdMmcRegister};
+use crate::sd_mmc::registers::registers::Register;
 use crate::sd_mmc::registers::sd::card_status::CardStatusRegister;
 use crate::sd_mmc::registers::sd::scr::ScrRegister;
 use crate::sd_mmc::registers::sd::switch_status::{
@@ -155,24 +155,9 @@ where
     pub fn sd_cmd6<RESPONSE: Response, FLAG: CommandFlag>(
         &mut self,
         command: Command<RESPONSE, FLAG>,
-        grp1_high_speed: bool,
-        grp2_no_influence: bool,
-        grp3_no_influence: bool,
-        grp4_no_influence: bool,
-        grp5_no_influence: bool,
-        grp6_no_influence: bool,
-        mode: Cmd6Mode,
+        arg: Cmd6
     ) -> Result<SwitchStatusRegister, ()> {
         let mut buf = [0u8; 64];
-        let mut arg = Cmd6 { val: 0 };
-        arg.set_function_group_1_access_mode(grp1_high_speed)
-            .set_function_group2_command_system(grp2_no_influence)
-            .set_function_group3(grp3_no_influence)
-            .set_function_group4(grp4_no_influence)
-            .set_function_group5(grp5_no_influence)
-            .set_function_group6(grp6_no_influence)
-            .set_mode(mode);
-
         self.mci
             .adtc_start(command.into(), arg.value(), 64, 1, true)?;
         self.mci.read_blocks(&mut buf, 1)?;
@@ -189,16 +174,15 @@ where
     ///
     /// True if set to high speed
     pub fn sd_cmd6_set_to_high_speed_mode(&mut self) -> Result<bool, ()> {
-        let status = self.sd_cmd6(
-            SD_CMD6_SWITCH_FUNC,
-            true,
-            false,
-            true,
-            true,
-            true,
-            true,
-            Cmd6Mode::Switch,
-        )?;
+        let mut arg = Cmd6 { val: 0 };
+        arg.set_function_group_1_access_mode(true)
+            .set_function_group2_command_system(false)
+            .set_function_group3(true)
+            .set_function_group4(true)
+            .set_function_group5(true)
+            .set_function_group6(true)
+            .set_mode(Cmd6Mode::Switch);
+        let status = self.sd_cmd6(SD_CMD6_SWITCH_FUNC, arg)?;
 
         if status.group1_info_status() == SD_SW_STATUS_FUN_GRP_RC_ERROR {
             // Not supported, not a protocol error
@@ -266,7 +250,7 @@ where
         let mult = SD_TRANS_MULTIPLIERS[((trans_speed >> 3) & 0xF) as usize];
         self.clock = unit * mult * 1000;
 
-        if self.csd.sd_csd_structure_version() as u8 >= (SdCsdStructureVersion::Ver2_0 as u8) {
+        if self.csd.sd_csd_structure_version() as u8 >= (SdCsdStructureVersion::Ver2d0 as u8) {
             self.capacity = (self.csd.sd_2_0_card_size() + 1) * 512;
         } else {
             let block_nr = ((self.csd.card_size() as u32) + 1)

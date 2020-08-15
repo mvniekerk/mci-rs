@@ -26,7 +26,7 @@ impl AtsamdMci {
     }
 
     pub fn wait_busy(&mut self) -> Result<(), ()> {
-        for n in (0u32..=0xFFFFFFFFu32).rev() {
+        for n in (0u32..=0xFFFF_FFFFu32).rev() {
             if n == 0 {
                 self.reset();
                 return Err(());
@@ -79,7 +79,7 @@ impl AtsamdMci {
         // Set clock divider
         self.sdhc.ccr.modify(|_, w| unsafe {
             w.sdclkfsel()
-                .bits((div as u8) & 0xFF)
+                .bits(div as u8)
                 .usdclkfsel()
                 .bits((div >> 8) as u8)
         });
@@ -352,7 +352,7 @@ impl Mci for AtsamdMci {
         // Read data
         let val = self.sdhc.bdpr.read().bits()
             & match nbytes {
-                3 => 0xFFFF_FF,
+                3 => 0xFF_FFFF,
                 2 => 0xFFFF,
                 1 => 0xFF,
                 _ => 0xFFFF_FFFF,

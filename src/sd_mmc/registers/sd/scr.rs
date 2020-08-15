@@ -15,7 +15,7 @@ impl Register<u64> for ScrRegister {
     }
 
     fn address() -> u8 {
-        0x0
+        unimplemented!()
     }
 }
 

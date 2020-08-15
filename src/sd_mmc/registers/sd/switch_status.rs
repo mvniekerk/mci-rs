@@ -13,7 +13,7 @@ impl Register<[u16; 32]> for SwitchStatusRegister {
     }
 
     fn address() -> u8 {
-        0x0
+        unimplemented!()
     }
 }
 

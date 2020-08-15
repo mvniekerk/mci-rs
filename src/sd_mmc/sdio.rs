@@ -108,8 +108,8 @@ where
         if byte_count > buf.len() {
             return Err(()); // Going to cause a buffer overflow
         }
-        for i in 0..byte_count {
-            buf[i] = self.sdio_cmd52(
+        for (i, item) in buf.iter_mut().enumerate().take(byte_count) {
+            *item = self.sdio_cmd52(
                 Direction::Read,
                 FunctionSelection::FunctionCia0,
                 address + (i as u32),
@@ -123,7 +123,7 @@ where
     pub fn sdio_read_cia_32bits(&mut self, address: u32) -> Result<u32, ()> {
         let mut buf = [0u8; 4];
         self.sdio_read_cia(address, &mut buf, 4)?; // TODO proper error
-        let ret = ((buf[0] as u32) << 0)
+        let ret = (buf[0] as u32)
             + ((buf[1] as u32) << 8)
             + ((buf[2] as u32) << 16)
             + ((buf[3] as u32) << 24);
@@ -188,8 +188,7 @@ where
 
     /// Switch bus width to mode. self.bus_width is update
     /// Returns final bus_width
-    ///
-    ///	SD memory cards always supports bus 4bit
+    /// SD memory cards always supports bus 4bit
     /// SD COMBO card always supports bus 4bit
     /// SDIO Full-Speed alone always supports 4bit
     /// SDIO Low-Speed alone can support 4bit (Optional)

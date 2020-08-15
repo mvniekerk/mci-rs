@@ -104,7 +104,7 @@ where
             index += 1;
         }
         let high_speed_capable =
-            (read.0 >> (EXT_CSD_CARD_TYPE_INDEX % 4) * 8).get_bits(0..2) == 0x2; // 52MHz = 0x2, 26MHz = 0x1
+            (read.0 >> ((EXT_CSD_CARD_TYPE_INDEX % 4) * 8)).get_bits(0..2) == 0x2; // 52MHz = 0x2, 26MHz = 0x1
 
         if self.csd.card_size() == 0xFFF {
             // For high capacity SD/MMC card, memory capacity = sec_count * 512 bytes
