@@ -10,7 +10,7 @@ use crate::mci::Mci;
 use crate::mode_index::ModeIndex;
 use crate::registers::ocr::{AccessMode, OcrRegister};
 use crate::registers::sd::card_status::CardStatusRegister;
-use crate::sd_mmc::{
+use crate::mci_card::{
     ocr_voltage_support, MciCard, MMC_TRANS_MULTIPLIERS, SD_MMC_TRANS_UNITS,
 };
 use bit_field::BitField;

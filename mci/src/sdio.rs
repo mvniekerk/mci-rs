@@ -12,7 +12,7 @@ use crate::registers::sdio::cccr::bus_interface::BusInterfaceControlRegister;
 use crate::registers::sdio::cccr::card_capability::CardCapabilityRegister;
 use crate::registers::sdio::cccr::function_select::FunctionSelection;
 use crate::registers::sdio::cccr::high_speed::HighSpeedRegister;
-use crate::sd_mmc::{
+use crate::mci_card::{
     ocr_voltage_support, MciCard, SD_MMC_TRANS_UNITS, SD_TRANS_MULTIPLIERS,
 };
 use embedded_hal::digital::v2::InputPin;

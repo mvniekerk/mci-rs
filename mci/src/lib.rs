@@ -14,7 +14,7 @@ pub mod mmc;
 pub mod mode_index;
 pub mod registers;
 pub mod sd;
-pub mod sd_mmc;
+pub mod mci_card;
 #[cfg(feature = "sdio")]
 pub mod sdio;
 #[cfg(feature = "sdio")]
