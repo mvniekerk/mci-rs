@@ -2,31 +2,21 @@ use crate::card_state::CardState;
 use crate::card_type::CardType;
 use crate::card_version::CardVersion::SdCard;
 use crate::card_version::{CardVersion, SdCardVersion};
-use crate::command::flags::CommandFlag;
 use crate::command::mmc_commands::BusWidth;
-use crate::command::response_type::Response;
-use crate::command::sd_commands::cmd6::{Cmd6, Cmd6Mode};
-use crate::command::sd_commands::cmd8::Cmd8;
 use crate::commands::{
-    Command, SDMMC_CMD12_STOP_TRANSMISSION, SDMMC_CMD17_READ_SINGLE_BLOCK,
+    SDMMC_CMD12_STOP_TRANSMISSION, SDMMC_CMD17_READ_SINGLE_BLOCK,
     SDMMC_CMD18_READ_MULTIPLE_BLOCK, SDMMC_CMD24_WRITE_BLOCK, SDMMC_CMD25_WRITE_MULTIPLE_BLOCK,
     SDMMC_CMD55_APP_CMD, SDMMC_MCI_CMD13_SEND_STATUS, SDMMC_MCI_CMD9_SEND_CSD, SD_ACMD51_SEND_SCR,
-    SD_ACMD6_SET_BUS_WIDTH, SD_CMD6_SWITCH_FUNC, SD_CMD8_SEND_IF_COND,
-    SD_MCI_ACMD41_SD_SEND_OP_COND,
+    SD_ACMD6_SET_BUS_WIDTH
 };
 use crate::mci::Mci;
 use crate::mmc::SD_MMC_BLOCK_SIZE;
 use crate::registers::csd::{CsdRegister, SdCsdStructureVersion};
 use crate::registers::ocr::OcrRegister;
-use crate::registers::register::Register;
 use crate::registers::sd::card_status::CardStatusRegister;
 use crate::registers::sd::scr::ScrRegister;
-use crate::registers::sd::switch_status::{
-    SwitchStatusRegister, SD_SW_STATUS_FUN_GRP_RC_ERROR,
-};
 use crate::sd::sd_physical_specification::SdPhysicalSpecification;
 use crate::transfer::TransferTransaction;
-use bit_field::BitField;
 use embedded_hal::digital::v2::InputPin;
 
 // SD/MMC transfer rate unit codes (10K) list
@@ -121,113 +111,6 @@ where
             detect: detect_pin,
             detect_high_activated,
         }
-    }
-
-    /// Ask all cards to send their operations conditions (MCI only).
-    /// # Arguments
-    /// * `v2` Shall be true if it is a SD card V2
-    pub fn sd_mci_operations_conditions(&mut self, v2: bool) -> Result<(), ()> {
-        // Timeout 1s = 400KHz / ((6+6+6+6)*8) cycles = 2100 retry
-        for i in (0..2100).rev() {
-            if i == 0 {
-                return Err(()); // TODO Proper error
-            }
-            // CMD55 - Indicate to the card that the next command is an
-            // application specific command rather than a standard command.
-
-            self.mci.send_command(SDMMC_CMD55_APP_CMD.into(), 0)?;
-            let mut arg = ocr_voltage_support();
-            arg.val.set_bit(30, v2); // SD_ACMD41_HCS ACMD41 High Capacity Support
-            self.mci
-                .send_command(SD_MCI_ACMD41_SD_SEND_OP_COND.into(), arg.value())?;
-            let resp = self.mci.get_response();
-            let resp = OcrRegister { val: resp };
-            if resp.card_powered_up_status() {
-                if resp.card_capacity_status() {
-                    self.card_type.set_high_capacity(true);
-                }
-                break;
-            }
-        }
-        Ok(())
-    }
-
-    pub fn sd_cmd6<RESPONSE: Response, FLAG: CommandFlag>(
-        &mut self,
-        command: Command<RESPONSE, FLAG>,
-        arg: Cmd6
-    ) -> Result<SwitchStatusRegister, ()> {
-        let mut buf = [0u8; 64];
-        self.mci
-            .adtc_start(command.into(), arg.value(), 64, 1, true)?;
-        self.mci.read_blocks(&mut buf, 1)?;
-        self.mci.wait_until_read_finished()?;
-
-        let ret: SwitchStatusRegister = buf.into();
-        Ok(ret)
-    }
-
-    /// CMD6 for SD - Switch card in high speed mode
-    /// CMD6 is valid under the trans state
-    /// self.high_speed is updated
-    /// self.clock is updated
-    ///
-    /// True if set to high speed
-    pub fn sd_cmd6_set_to_high_speed_mode(&mut self) -> Result<bool, ()> {
-        let mut arg = Cmd6 { val: 0 };
-        arg.set_function_group_1_access_mode(true)
-            .set_function_group2_command_system(false)
-            .set_function_group3(true)
-            .set_function_group4(true)
-            .set_function_group5(true)
-            .set_function_group6(true)
-            .set_mode(Cmd6Mode::Switch);
-        let status = self.sd_cmd6(SD_CMD6_SWITCH_FUNC, arg)?;
-
-        if status.group1_info_status() == SD_SW_STATUS_FUN_GRP_RC_ERROR {
-            // Not supported, not a protocol error
-            return Ok(false);
-        }
-
-        if status.group1_busy() > 0 {
-            return Err(()); // TODO proper error
-        }
-
-        // CMD6 function switching period is within 8 clocks after then bit of status data
-        self.mci.send_clock()?;
-
-        self.high_speed = true;
-        self.clock *= 2;
-
-        Ok(false)
-    }
-
-    /// CMD8 for SD card - send interface condition command
-    /// Send SD Memory Card interface condition, which includes host supply
-    /// voltage information and asks the card whether card supports voltage.
-    /// Should be performed at initialization time to detect the card type.
-    ///
-    pub fn sd_cmd8_is_v2(&mut self) -> Result<bool, ()> {
-        let mut arg = Cmd8::default();
-        arg.set_cmd8_pattern(true).set_high_voltage(true);
-
-        if self
-            .mci
-            .send_command(SD_CMD8_SEND_IF_COND.into(), arg.val as u32)
-            .is_err()
-        {
-            return Ok(false); // Not V2
-        }
-        let ret = self.mci.get_response();
-        if ret == 0xFFFF_FFFF {
-            // No compliance R7 value
-            return Ok(false);
-        }
-        if ret != arg.val as u32 {
-            return Err(()); // TODO special error
-        }
-        // Is a V2
-        Ok(true)
     }
 
     /// CMD9: Card sends its card specific data (CSD)
