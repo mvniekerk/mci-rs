@@ -1,4 +1,3 @@
-use crate::sd_mmc::command::device_type::SdioDevice;
 use crate::sd_mmc::sd_mmc::{SdMmcCard, ocr_voltage_support, SD_MMC_TRANS_UNITS, SD_TRANS_MULTIPLIERS};
 use crate::sd_mmc::mci::Mci;
 use atsamd_hal::hal::digital::v2::InputPin;
@@ -12,10 +11,6 @@ use crate::sd_mmc::registers::sdio::cccr::card_capability::CardCapabilityRegiste
 use crate::sd_mmc::registers::sdio::cccr::high_speed::HighSpeedRegister;
 use crate::sd_mmc::command::mmc_commands::BusWidth;
 use crate::sd_mmc::command::sdio_commands::cmd53::Cmd53;
-
-impl SdioDevice {
-
-}
 
 pub const SDIO_CCCR_CIS_PTR: u32 = 0x09;
 pub const SDIO_CISTPL_END: u8 = 0xFF;
