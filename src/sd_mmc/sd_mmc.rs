@@ -5,7 +5,7 @@ use crate::sd_mmc::card_version::{CardVersion, SdCardVersion};
 use crate::sd_mmc::sd::sd_bus_width::SdBusWidth;
 use crate::sd_mmc::registers::csd::{CsdRegister, SdCsdStructureVersion};
 use atsamd_hal::hal::digital::v2::InputPin;
-use crate::sd_mmc::commands::{SD_MCI_ACMD41_SD_SEND_OP_COND, SDMMC_CMD55_APP_CMD, SD_CMD6_SWITCH_FUNC, Command, SD_CMD8_SEND_IF_COND, SDMMC_MCI_CMD9_SEND_CSD, SDMMC_MCI_CMD13_SEND_STATUS, SD_ACMD6_SET_BUS_WIDTH, SD_ACMD51_SEND_SCR, SDMMC_CMD18_READ_MULTIPLE_BLOCK, SDMMC_CMD17_READ_SINGLE_BLOCK};
+use crate::sd_mmc::commands::{SD_MCI_ACMD41_SD_SEND_OP_COND, SDMMC_CMD55_APP_CMD, SD_CMD6_SWITCH_FUNC, Command, SD_CMD8_SEND_IF_COND, SDMMC_MCI_CMD9_SEND_CSD, SDMMC_MCI_CMD13_SEND_STATUS, SD_ACMD6_SET_BUS_WIDTH, SD_ACMD51_SEND_SCR, SDMMC_CMD18_READ_MULTIPLE_BLOCK, SDMMC_CMD17_READ_SINGLE_BLOCK, SDMMC_CMD12_STOP_TRANSMISSION};
 use crate::sd_mmc::registers::ocr::OcrRegister;
 use bit_field::BitField;
 use crate::sd_mmc::registers::registers::{Register, SdMmcRegister};
@@ -296,6 +296,10 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         Ok(())
     }
 
+    pub fn sd_mmc_deselect_this_device(&mut self) -> Result<(), ()> {
+        self.mci.deselect_device()
+    }
+
     pub fn sd_select_this_device_on_mci_and_configure_mci(&mut self) -> Result<(), ()> {
         self.mci.select_device(self.slot, self.clock, &self.bus_width, self.high_speed) // TODO proper error
     }
@@ -348,5 +352,36 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             amount: blocks_amount,
             remaining: blocks_amount
         })
+    }
+
+    pub fn sd_mmc_start_read_blocks(&mut self, transaction: &mut TransferTransaction, destination: &mut [u8], amount_of_blocks: u16) -> Result<(), ()> {
+        if self.mci.read_blocks(destination, amount_of_blocks).is_err() {
+            transaction.remaining = 0;
+            return Err(()); // TODO proper read error
+        }
+        transaction.remaining -= amount_of_blocks;
+        Ok(())
+    }
+
+    pub fn sd_mmc_wait_end_of_read_blocks(&mut self, abort: bool, transaction: &mut TransferTransaction) -> Result<(), ()> {
+        !self.mci.wait_until_read_finished()?;
+        if abort {
+            transaction.remaining = 0;
+        } else if transaction.remaining > 0 {
+            return Ok(())
+        }
+
+        // All blocks are transferred then stop read operation
+        if transaction.remaining == 1 {
+            return Ok(())
+        }
+
+        // WORKAROUND for no compliance card (Atmel Internal ref. !MMC7 !SD19)
+        // The errors on this cmmand must be ignored and one retry can be necessary in SPI mode
+        // for non-complying card
+        if self.mci.adtc_stop(SDMMC_CMD12_STOP_TRANSMISSION.into(), 0).is_err() {
+            self.mci.adtc_stop(SDMMC_CMD12_STOP_TRANSMISSION.into(), 0);
+        }
+        Ok(())
     }
 }

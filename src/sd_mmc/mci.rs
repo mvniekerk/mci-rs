@@ -14,7 +14,7 @@ pub trait Mci {
     fn select_device(&mut self, slot: u8, clock: u32, bus_width: &BusWidth, high_speed: bool) -> Result<(), ()>;
 
     /// Deselect device
-    fn deselect_device(&mut self) -> Result<(), ()>;
+    fn deselect_device(&mut self, slot: u8) -> Result<(), ()>;
 
     /// Get the maximum bus width for a device
     fn get_bus_width(&mut self, slot: u8) -> Result<BusWidth, ()>;
@@ -60,7 +60,7 @@ pub trait Mci {
     /// # Arguments
     ///  * `destination` Buffer to write to
     ///  * `number_of_blocks` Number of blocks to read
-    fn read_blocks(&mut self, destination: &mut [u8], number_of_blocks: usize) -> Result<bool, ()>;
+    fn read_blocks(&mut self, destination: &mut [u8], number_of_blocks: u16) -> Result<bool, ()>;
 
     /// Start a write block transfer on the line
     /// # Arguments

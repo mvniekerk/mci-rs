@@ -226,7 +226,7 @@ impl Mci for AtsamdMci {
         Ok(())
     }
 
-    fn deselect_device(&mut self) -> Result<(), ()> {
+    fn deselect_device(&mut self, _slot: u8) -> Result<(), ()> {
         /// NOP
         Ok(())
     }
@@ -367,7 +367,7 @@ impl Mci for AtsamdMci {
         Ok(true)
     }
 
-    fn read_blocks(&mut self, destination: &mut [u8], number_of_blocks: usize) -> Result<bool, ()> {
+    fn read_blocks(&mut self, destination: &mut [u8], number_of_blocks: u16) -> Result<bool, ()> {
 
         let mut data = (number_of_blocks as u64) * (self.block_size as u64);
         let len = data as usize;
