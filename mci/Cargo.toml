@@ -10,6 +10,7 @@ description = "MultiMedia Card Interface implementation using MCI"
 
 [dependencies]
 bit_field = "~0.10"
+embedded-hal = "^0.2"
 
 [features]
 sdio = []

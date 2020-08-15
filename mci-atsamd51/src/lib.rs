@@ -1,3 +1,4 @@
+#![no_std]
 use mci::command::mmc_commands::BusWidth;
 use mci::command::MciCommand;
 use mci::mci::Mci;

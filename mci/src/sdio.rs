@@ -15,7 +15,7 @@ use crate::registers::sdio::cccr::high_speed::HighSpeedRegister;
 use crate::sd_mmc::{
     ocr_voltage_support, SdMmcCard, SD_MMC_TRANS_UNITS, SD_TRANS_MULTIPLIERS,
 };
-use atsamd_hal::hal::digital::v2::InputPin;
+use embedded_hal::digital::v2::InputPin;
 
 pub const SDIO_CCCR_CIS_PTR: u32 = 0x09;
 pub const SDIO_CISTPL_END: u8 = 0xFF;

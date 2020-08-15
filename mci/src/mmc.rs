@@ -13,8 +13,8 @@ use crate::registers::sd::card_status::CardStatusRegister;
 use crate::sd_mmc::{
     ocr_voltage_support, SdMmcCard, MMC_TRANS_MULTIPLIERS, SD_MMC_TRANS_UNITS,
 };
-use atsamd_hal::hal::digital::v2::InputPin;
 use bit_field::BitField;
+use embedded_hal::digital::v2::InputPin;
 
 pub const EXT_CSD_CARD_TYPE_INDEX: u32 = 196;
 pub const EXT_CSD_SEC_COUNT_INDEX: u32 = 212;

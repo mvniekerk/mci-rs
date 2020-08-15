@@ -26,8 +26,8 @@ use crate::registers::sd::switch_status::{
 };
 use crate::sd::sd_physical_specification::SdPhysicalSpecification;
 use crate::transfer::TransferTransaction;
-use atsamd_hal::hal::digital::v2::InputPin;
 use bit_field::BitField;
+use embedded_hal::digital::v2::InputPin;
 
 // SD/MMC transfer rate unit codes (10K) list
 pub const SD_MMC_TRANS_UNITS: [u32; 7] = [10, 100, 1_000, 10_000, 0, 0, 0];
