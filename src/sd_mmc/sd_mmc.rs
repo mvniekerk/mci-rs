@@ -297,7 +297,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     }
 
     pub fn sd_mmc_deselect_this_device(&mut self) -> Result<(), ()> {
-        self.mci.deselect_device()
+        self.mci.deselect_device(self.slot)
     }
 
     pub fn sd_select_this_device_on_mci_and_configure_mci(&mut self) -> Result<(), ()> {
@@ -364,7 +364,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     }
 
     pub fn sd_mmc_wait_end_of_read_blocks(&mut self, abort: bool, transaction: &mut TransferTransaction) -> Result<(), ()> {
-        !self.mci.wait_until_read_finished()?;
+        self.mci.wait_until_read_finished()?;
         if abort {
             transaction.remaining = 0;
         } else if transaction.remaining > 0 {
