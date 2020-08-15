@@ -1,6 +1,6 @@
-use crate::command::mmc_commands::BusWidth;
-use crate::command::MciCommand;
-use crate::mci::Mci;
+use mci::command::mmc_commands::BusWidth;
+use mci::command::MciCommand;
+use mci::mci::Mci;
 use atsamd_hal::target_device::SDHC0;
 use bit_field::BitField;
 
