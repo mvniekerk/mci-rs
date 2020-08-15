@@ -66,7 +66,7 @@ pub trait Mci {
     /// # Arguments
     ///  * `data` - Data to write on the line
     ///  * `number_of_blocks` - Number of blocks to write
-    fn write_blocks(&mut self, data: &[u8], number_of_blocks: usize) -> Result<bool, ()>;
+    fn write_blocks(&mut self, data: &[u8], number_of_blocks: u16) -> Result<bool, ()>;
 
     /// Wait until the end of reading the blocks
     fn wait_until_read_finished(&self) -> Result<(), ()>;

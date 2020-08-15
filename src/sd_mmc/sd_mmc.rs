@@ -409,4 +409,32 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             amount: blocks_amount
         })
     }
+
+    pub fn sd_mmc_start_write_blocks(&mut self, transaction: &mut TransferTransaction, data: &[u8], blocks_amount: u16) -> Result<(), ()> {
+        if self.mci.write_blocks(data, blocks_amount).is_err() {
+            transaction.remaining = 0;
+            return Err(()); // TODO proper error
+        }
+        transaction.remaining -= blocks_amount;
+        Ok(())
+    }
+
+    pub fn sd_mmc_wait_end_of_write_blocks(&mut self, abort: bool, transaction: &mut TransferTransaction) -> Result<(), ()> {
+        self.mci.wait_until_write_finished()?; // TODO proper error
+        if abort {
+            transaction.remaining = 0;
+        } else if transaction.remaining > 0 {
+            return Ok(());  // TODO proper return?
+        }
+
+        // All blocks are transferred then stop write operation
+        if transaction.remaining == 1 {
+            // Single block transfer, then nothing to do
+            return Ok(()); // TODO proper return?
+        }
+
+        // Note SPI multi-block writes terminate using a special token, not a STOP_TRANSMISSION request
+        self.mci.adtc_stop(SDMMC_CMD12_STOP_TRANSMISSION.into(), 0)?; // TODO proper error
+        Ok(())
+    }
 }

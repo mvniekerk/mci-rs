@@ -389,7 +389,7 @@ impl Mci for AtsamdMci {
         Ok(true)
     }
 
-    fn write_blocks(&mut self, write_data: &[u8], number_of_blocks: usize) -> Result<bool, ()> {
+    fn write_blocks(&mut self, write_data: &[u8], number_of_blocks: u16) -> Result<bool, ()> {
         let mut data = (number_of_blocks as u64) * (self.block_size as u64);
         let mut len = data as usize;
         let mut index = 0usize;
@@ -399,7 +399,7 @@ impl Mci for AtsamdMci {
             let mut val = 0u32;
             for m in 0..4 {
                 let mm = m as usize;
-                if (m as usize) + index >= len {
+                if mm + index >= len {
                     break;
                 }
                 val <<= 8;
