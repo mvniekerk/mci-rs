@@ -1,6 +1,6 @@
 #![no_std]
 use mci::command::mmc_commands::BusWidth;
-use mci::command::MciCommand;
+use mci::command::mci_command::MciCommand;
 use mci::mci::Mci;
 use atsamd_hal::target_device::SDHC0;
 use bit_field::BitField;
