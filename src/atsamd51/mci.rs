@@ -362,7 +362,7 @@ impl Mci for AtsamdMci {
         }
 
         // Wait end of transfer
-        self.loop_or_on_eistr_err(|f| f.sdhc.nistr().read().trfc().bit_is_set());
+        self.loop_or_on_eistr_err(|f| f.sdhc.nistr().read().trfc().bit_is_set())?; //TODO proper error
         self.sdhc.nistr().modify(|_, w| w.trfc().yes());
         Ok(true)
     }

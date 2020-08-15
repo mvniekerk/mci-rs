@@ -138,7 +138,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
 
         // Read all Fun0 tuple field: fn0_blk_size & max_tran_speed
         addr -= 3;
-        self.sdio_read_cia(addr, &mut buf, 6);
+        self.sdio_read_cia(addr, &mut buf, 6)?; // TODO proper error
 
         let tplfe_max_tran_speed = if buf[5] > 0x32 {
             // Error on SDIO register, the high speed is not activated and the clock can't be more
@@ -162,10 +162,10 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     /// Switch bus width to mode. self.bus_width is update
     /// Returns final bus_width
     ///
-    // 	SD memory cards always supports bus 4bit
-    // 	SD COMBO card always supports bus 4bit
-    // 	SDIO Full-Speed alone always supports 4bit
-    // 	SDIO Low-Speed alone can support 4bit (Optional)
+    ///	SD memory cards always supports bus 4bit
+    /// SD COMBO card always supports bus 4bit
+    /// SDIO Full-Speed alone always supports 4bit
+    /// SDIO Low-Speed alone can support 4bit (Optional)
     pub fn sdio_cmd52_switch_to_4_bus_width_mode(&mut self) -> Result<BusWidth, ()> {
         use crate::sd_mmc::registers::sdio::cccr::bus_interface::BusWidth as SdioBusWidth;
         let mut cccr_cap = CardCapabilityRegister { val:

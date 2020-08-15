@@ -14,7 +14,7 @@ use crate::sd_mmc::command::sd_commands::cmd6::{Cmd6, Cmd6Mode};
 use crate::sd_mmc::command::flags::CommandFlag;
 use crate::sd_mmc::command::response_type::Response;
 use crate::sd_mmc::command::mmc_commands::BusWidth;
-use crate::sd_mmc::command::sd_commands::Cmd8::Cmd8;
+use crate::sd_mmc::command::sd_commands::cmd8::Cmd8;
 use crate::sd_mmc::registers::sd::card_status::CardStatusRegister;
 use crate::sd_mmc::registers::sd::scr::ScrRegister;
 use crate::sd_mmc::sd::sd_physical_specification::SdPhysicalSpecification;
@@ -131,9 +131,9 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         Ok(())
     }
 
-    pub fn sd_cmd6<RESPONSE, FLAG, MODE, DEVICE>(
+    pub fn sd_cmd6<RESPONSE: Response, FLAG: CommandFlag>(
         &mut self,
-        command: Command<RESPONSE, FLAG, MODE, DEVICE>,
+        command: Command<RESPONSE, FLAG>,
         grp1_high_speed: bool,
         grp2_no_influence: bool,
         grp3_no_influence: bool,
@@ -141,10 +141,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         grp5_no_influence: bool,
         grp6_no_influence: bool,
         mode: Cmd6Mode
-    ) -> Result<SwitchStatusRegister, ()>
-        where RESPONSE: Response,
-              FLAG: CommandFlag
-    {
+    ) -> Result<SwitchStatusRegister, ()> {
         let mut buf = [0u8; 64];
         let mut arg = Cmd6 { val: 0 };
         arg.set_function_group_1_access_mode(grp1_high_speed)
@@ -380,7 +377,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         // The errors on this cmmand must be ignored and one retry can be necessary in SPI mode
         // for non-complying card
         if self.mci.adtc_stop(SDMMC_CMD12_STOP_TRANSMISSION.into(), 0).is_err() {
-            self.mci.adtc_stop(SDMMC_CMD12_STOP_TRANSMISSION.into(), 0);
+            self.mci.adtc_stop(SDMMC_CMD12_STOP_TRANSMISSION.into(), 0)?; // TODO proper error
         }
         Ok(())
     }

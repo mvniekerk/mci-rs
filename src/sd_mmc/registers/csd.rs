@@ -82,10 +82,12 @@ impl CsdRegister {
         self.csd_structure_version().into()
     }
 
+    #[cfg(feature = "mmc")]
     pub fn set_mmc_csd_spec_version(&mut self, version: u8) {
         self.val.set_bits(122..126, version as u32);
     }
 
+    #[cfg(feature = "mmc")]
     pub fn mmc_csd_spec_version(&self) -> u8 {
         self.val.get_bits(122..126) as u8
     }
