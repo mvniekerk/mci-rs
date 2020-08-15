@@ -1,9 +1,4 @@
-// use std::ops::{BitOr, Add};
-use core::marker::PhantomData;
-use crate::sd_mmc::command::flags;
 use crate::sd_mmc::command::response_type::{CmdR1R6, NoResponse, CmdR3R4, CmdR2, CmdR1B, CmdR7, CmdR5, Response};
-use crate::sd_mmc::command::device_mode::{SpiMode};
-use crate::sd_mmc::command::device_type::{SdMmcDevice};
 use crate::sd_mmc::command::flags::{NoFlag, OpenDrain, SingleBlock, WriteMultiBlock, WriteSingleBlock, MultiBlock, SdioByte, SdioWriteByte, SdioBlock, SdioWriteBlock, CommandFlag};
 
 pub struct Command<RESP: Response, FLAG: CommandFlag> {

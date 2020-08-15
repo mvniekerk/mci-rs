@@ -1,6 +1,5 @@
 use bit_field::BitField;
-use crate::sd_mmc::registers::registers::{Register, SdMmcRegister};
-use crate::sd_mmc::command::response_type::{CmdR1R6, Response};
+use crate::sd_mmc::registers::registers::SdMmcRegister;
 
 pub struct Cmd6 {
     pub val: u32

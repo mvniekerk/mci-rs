@@ -1,6 +1,3 @@
-use crate::sd_mmc::command::flags::CommandFlags;
-use bit_field::BitField;
-
 // Have response MCI only
 pub trait ResponsePresent {}
 // 8 bit response = SPI only
@@ -108,10 +105,10 @@ pub enum ResponseFlags {
 
 pub enum ResponseType {
     NoResponse = 0,
-    CmdR1R6     = (ResponseFlags::ResponsePresent as isize | ResponseFlags::ResponseCrc as isize),
-    CmdR1B      = (ResponseFlags::ResponsePresent as isize | ResponseFlags::ResponseCrc as isize | ResponseFlags::ResponseBusy as isize),
-    CmdR2       = (ResponseFlags::ResponsePresent as isize | ResponseFlags::Response8 as isize | ResponseFlags::Response136 as isize | ResponseFlags::ResponseCrc as isize),
-    CmdR3R4     = (ResponseFlags::ResponsePresent as isize | ResponseFlags::Response32 as isize),
-    CmdR5       = (ResponseFlags::ResponsePresent as isize | ResponseFlags::Response8 as isize | ResponseFlags::ResponseCrc as isize),
-    CmdR7       = (ResponseFlags::ResponsePresent as isize | ResponseFlags::Response32 as isize | ResponseFlags::ResponseCrc as isize)
+    CmdR1R6     = ResponseFlags::ResponsePresent as isize | ResponseFlags::ResponseCrc as isize,
+    CmdR1B      = ResponseFlags::ResponsePresent as isize | ResponseFlags::ResponseCrc as isize | ResponseFlags::ResponseBusy as isize,
+    CmdR2       = ResponseFlags::ResponsePresent as isize | ResponseFlags::Response8 as isize | ResponseFlags::Response136 as isize | ResponseFlags::ResponseCrc as isize,
+    CmdR3R4     = ResponseFlags::ResponsePresent as isize | ResponseFlags::Response32 as isize,
+    CmdR5       = ResponseFlags::ResponsePresent as isize | ResponseFlags::Response8 as isize | ResponseFlags::ResponseCrc as isize,
+    CmdR7       = ResponseFlags::ResponsePresent as isize | ResponseFlags::Response32 as isize | ResponseFlags::ResponseCrc as isize
 }

@@ -2,7 +2,6 @@ use crate::sd_mmc::mci::Mci;
 use crate::sd_mmc::card_state::CardState;
 use crate::sd_mmc::card_type::CardType;
 use crate::sd_mmc::card_version::{CardVersion, SdCardVersion};
-use crate::sd_mmc::sd::sd_bus_width::SdBusWidth;
 use crate::sd_mmc::registers::csd::{CsdRegister, SdCsdStructureVersion};
 use atsamd_hal::hal::digital::v2::InputPin;
 use crate::sd_mmc::commands::{SD_MCI_ACMD41_SD_SEND_OP_COND, SDMMC_CMD55_APP_CMD, SD_CMD6_SWITCH_FUNC, Command, SD_CMD8_SEND_IF_COND, SDMMC_MCI_CMD9_SEND_CSD, SDMMC_MCI_CMD13_SEND_STATUS, SD_ACMD6_SET_BUS_WIDTH, SD_ACMD51_SEND_SCR, SDMMC_CMD18_READ_MULTIPLE_BLOCK, SDMMC_CMD17_READ_SINGLE_BLOCK, SDMMC_CMD12_STOP_TRANSMISSION, SDMMC_CMD25_WRITE_MULTIPLE_BLOCK, SDMMC_CMD24_WRITE_BLOCK};
@@ -245,7 +244,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     /// Waits for the clear of the busy flag
     pub fn sd_mmc_cmd13_get_status_and_wait_for_ready_for_data_flag(&mut self) -> Result<CardStatusRegister, ()> {
         let mut status = CardStatusRegister::default();
-        /// TODO maybe proper timeout
+        // TODO maybe proper timeout
         for i in (0..200_000u32).rev() {
             if i == 0 {
                 return Err(()); // TODO proper timeout error
@@ -262,7 +261,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     /// ACMD6 = Define the data bus width to be 4 bits
     pub fn sd_acmd6_set_data_bus_width_to_4_bits(&mut self) -> Result<(), ()> {
         self.mci.send_command(SDMMC_CMD55_APP_CMD.into(), (self.rca as u32) << 16)?;
-        self.mci.send_command(SD_ACMD6_SET_BUS_WIDTH.into(), 0x2);
+        self.mci.send_command(SD_ACMD6_SET_BUS_WIDTH.into(), 0x2)?;
         self.bus_width = BusWidth::_4BIT;
         Ok(())
     }
@@ -285,10 +284,10 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     pub fn sd_acmd51(&mut self) -> Result<(), ()> {
         let scr = self.sd_scr()?;
         self.version = match scr.sd_specification_version() {
-            SdPhysicalSpecification::Revision1_01 => SdCard(SdCardVersion::Sd_1_0),
-            SdPhysicalSpecification::Revision1_10 => SdCard(SdCardVersion::Sd_1_10),
-            SdPhysicalSpecification::Revision2_00 => SdCard(SdCardVersion::Sd_2_0),
-            _ => SdCard(SdCardVersion::Sd_1_0)
+            SdPhysicalSpecification::Revision1d01 => SdCard(SdCardVersion::Sd1d0),
+            SdPhysicalSpecification::Revision1d10 => SdCard(SdCardVersion::Sd1d10),
+            SdPhysicalSpecification::Revision2d00 => SdCard(SdCardVersion::Sd2d0),
+            _ => SdCard(SdCardVersion::Sd1d0)
         };
         Ok(())
     }

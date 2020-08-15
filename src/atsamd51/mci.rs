@@ -3,8 +3,6 @@ use crate::sd_mmc::command::mmc_commands::BusWidth;
 use atsamd_hal::target_device::SDHC0;
 use bit_field::BitField;
 use crate::sd_mmc::command::MciCommand;
-use atsamd_hal::target_device::sdhc0::{_TMR, TMR};
-use atsamd_hal::target_device::sdhc0::tmr::DTDSEL_A;
 
 pub struct AtsamdMci {
     sdhc: SDHC0,
@@ -45,7 +43,7 @@ impl AtsamdMci {
         // let clk_base = CONF_BASE_FREQ;
         let mut clk_base = self.sdhc.ca0r.read().baseclkf().bits();
         let clk_mult = self.sdhc.ca1r.read().clkmult().bits();
-        let mut div: u32 = 0;
+        let mut div: u32;
 
         // If programmable clock mode is enabled, baseclk is divided by 2
         if clk_mult > 0 {
@@ -201,7 +199,7 @@ impl Mci for AtsamdMci {
     }
 
     fn deinit(&mut self) -> Result<(), ()> {
-        /// NOP
+        // NOP
         Ok(())
     }
 
@@ -227,7 +225,7 @@ impl Mci for AtsamdMci {
     }
 
     fn deselect_device(&mut self, _slot: u8) -> Result<(), ()> {
-        /// NOP
+        // NOP
         Ok(())
     }
 
@@ -264,7 +262,7 @@ impl Mci for AtsamdMci {
         ]
     }
 
-    fn adtc_start(&mut self, command: u32, argument: u32, block_size: u16, block_amount: u16, access_in_blocks: bool) -> Result<(), ()> {
+    fn adtc_start(&mut self, command: u32, argument: u32, block_size: u16, block_amount: u16, _access_in_blocks: bool) -> Result<(), ()> {
         let psr = self.sdhc.psr.read();
         // Check Command Inhibit (CMD/DAT) in the Present State register
         if psr.cmdinhc().bit_is_set() || psr.cmdinhd().bit_is_set() {
@@ -314,7 +312,7 @@ impl Mci for AtsamdMci {
         self.send_command_execute(1 << 5, command.val, argument)
     }
 
-    fn adtc_stop(&self, command: u32, argument: u32) -> Result<(), ()> {
+    fn adtc_stop(&self, _command: u32, _argument: u32) -> Result<(), ()> {
         // Nop
         Ok(())
     }
@@ -391,7 +389,7 @@ impl Mci for AtsamdMci {
 
     fn write_blocks(&mut self, write_data: &[u8], number_of_blocks: u16) -> Result<bool, ()> {
         let mut data = (number_of_blocks as u64) * (self.block_size as u64);
-        let mut len = data as usize;
+        let len = data as usize;
         let mut index = 0usize;
 
         while data > 0 {

@@ -1,4 +1,4 @@
-use crate::sd_mmc::command::device_type::{SdioDeviceType, SdioDevice};
+use crate::sd_mmc::command::device_type::SdioDevice;
 use crate::sd_mmc::sd_mmc::{SdMmcCard, ocr_voltage_support, SD_MMC_TRANS_UNITS, SD_TRANS_MULTIPLIERS};
 use crate::sd_mmc::mci::Mci;
 use atsamd_hal::hal::digital::v2::InputPin;
@@ -9,10 +9,9 @@ use crate::sd_mmc::command::sdio_commands::cmd52::{Direction, Cmd52};
 use crate::sd_mmc::registers::sdio::cccr::function_select::FunctionSelection;
 use crate::sd_mmc::registers::sdio::cccr::bus_interface::{BusInterfaceControlRegister};
 use crate::sd_mmc::registers::sdio::cccr::card_capability::CardCapabilityRegister;
-use crate::sd_mmc::sd::sd_bus_width::SdBusWidth;
 use crate::sd_mmc::registers::sdio::cccr::high_speed::HighSpeedRegister;
 use crate::sd_mmc::command::mmc_commands::BusWidth;
-use crate::sd_mmc::command::sdio_commands::cmd53::{Cmd53, OpCode};
+use crate::sd_mmc::command::sdio_commands::cmd53::Cmd53;
 
 impl SdioDevice {
 
@@ -96,7 +95,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
 
     pub fn sdio_read_cia_32bits(&mut self, address: u32) -> Result<u32, ()> {
         let mut buf = [0u8; 4];
-        self.sdio_read_cia(address, &mut buf, 4);
+        self.sdio_read_cia(address, &mut buf, 4)?; // TODO proper error
         let ret =
             ((buf[0] as u32) << 0) +
             ((buf[1] as u32) << 8) +
@@ -168,7 +167,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     /// SDIO Low-Speed alone can support 4bit (Optional)
     pub fn sdio_cmd52_switch_to_4_bus_width_mode(&mut self) -> Result<BusWidth, ()> {
         use crate::sd_mmc::registers::sdio::cccr::bus_interface::BusWidth as SdioBusWidth;
-        let mut cccr_cap = CardCapabilityRegister { val:
+        let cccr_cap = CardCapabilityRegister { val:
             self.sdio_cmd52(
                 Direction::Read, FunctionSelection::FunctionCia0, CardCapabilityRegister::address() as u32, false, 0
             )?
@@ -251,7 +250,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     pub fn sdio_write_extended(&mut self, function: FunctionSelection, address: u16, increment_address: bool, source: &[u8], size: u16) -> Result<(), ()> {
         self.sd_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
         self.sdio_cmd53_io_rw_extended(Direction::Write, function, address, increment_address, size, true)?; // TODO proper error
-        self.mci.write_blocks(source, 1);
+        self.mci.write_blocks(source, 1)?; // TODO proper error
         self.mci.wait_until_write_finished() // TODO proper error
     }
 }

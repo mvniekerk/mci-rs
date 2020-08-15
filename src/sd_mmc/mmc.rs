@@ -6,7 +6,6 @@ use crate::sd_mmc::registers::ocr::{OcrRegister, AccessMode};
 use crate::sd_mmc::command::mmc_commands::{BusWidth, Cmd6, Access};
 use crate::sd_mmc::mode_index::ModeIndex;
 use crate::sd_mmc::registers::sd::card_status::CardStatusRegister;
-use crate::sd_mmc::registers::csd::CsdRegister;
 use bit_field::BitField;
 use crate::sd_mmc::card_version::CardVersion::{Mmc, Unknown};
 use crate::sd_mmc::card_version::MmcVersion;
@@ -113,11 +112,11 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     /// Updates self.version, self.clock, self.capacity
     pub fn mmc_decode_csd(&mut self) -> Result<(), ()> {
         self.version = match self.csd.mmc_csd_spec_version() {
-            0 => Mmc(MmcVersion::Mmc_1_2),
-            1 => Mmc(MmcVersion::Mmc_1_4),
-            2 => Mmc(MmcVersion::Mmc_2_2),
-            3 => Mmc(MmcVersion::SdMmc_3_0),
-            4 => Mmc(MmcVersion::Mmc_4),
+            0 => Mmc(MmcVersion::Mmc1d2),
+            1 => Mmc(MmcVersion::Mmc1d4),
+            2 => Mmc(MmcVersion::Mmc2d2),
+            3 => Mmc(MmcVersion::SdMmc3d0),
+            4 => Mmc(MmcVersion::Mmc4d0),
             _ => Unknown
         };
 
@@ -157,7 +156,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
 
         // Put the card in Identify Mode
         // Note: The CID is not used
-        self.mci.send_command(SDMMC_CMD2_ALL_SEND_CID.into(), 0);
+        self.mci.send_command(SDMMC_CMD2_ALL_SEND_CID.into(), 0)?; // TODO Proper error
 
         //Assign relative address to the card
         self.rca = 1;
@@ -171,22 +170,22 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         self.mci.send_command(SDMMC_CMD7_SELECT_CARD_CMD.into(), (self.rca as u32) << 16)?;
 
         let version: usize = self.version.into();
-        if version >= MmcVersion::Mmc_4 as usize {
+        if version >= MmcVersion::Mmc4d0 as usize {
             // For MMC 4.0 Higher version
             // Get EXT_CSD
             let authorize_high_speed = self.mmc_cmd8_high_speed_capable_and_update_capacity()?;
             if BusWidth::_4BIT <= self.mci.get_bus_width(self.slot)? {
                 // Enable more bus width
                 let bus_width = self.bus_width;
-                self.mmc_cmd6_set_bus_width(&bus_width);
-                self.sd_select_this_device_on_mci_and_configure_mci()?;
+                self.mmc_cmd6_set_bus_width(&bus_width)?; // TODO proper error
+                self.sd_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
             }
-            if self.mci.is_high_speed_capable()? && authorize_high_speed {
-                self.mmc_cmd6_set_high_speed()?;
-                self.sd_select_this_device_on_mci_and_configure_mci()?;
+            if self.mci.is_high_speed_capable()? && authorize_high_speed { // TODO proper error
+                self.mmc_cmd6_set_high_speed()?; // TODO proper error
+                self.sd_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
             }
         } else {
-            self.sd_select_this_device_on_mci_and_configure_mci()?;
+            self.sd_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
         }
         for _ in 0..10 {
             // Retry is a workaround for no compliance card (Atmel Internal ref. MMC19)
