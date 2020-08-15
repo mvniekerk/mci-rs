@@ -1,0 +1,33 @@
+[package]
+name = "mci-atsamd51"
+version = "0.0.0"
+authors = ["Michael van Niekerk <mvniekerk@chazaqdev.com>"]
+edition = "2018"
+repository = "https://github.com/mvniekerk/mci-rs"
+description = "ATSAMD51 specific implementation for the MCI interface"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bit_field = "~0.10"
+
+[dependencies.atsamd-hal]
+version = "~0.8"
+default-features = false
+optional = true
+
+[dependencies.cortex-m-rt]
+version = "~0.6"
+optional = true
+
+[dependencies.mci]
+path = "../mci"
+
+[features]
+sdio = ["mci/sdio"]
+mmc = ["mci/mmc"]
+default = ["atsamd51j20a", "sdio", "mmc"]
+atsamd51j20a = ["atsamd51", "atsamd-hal/samd51j20a"]
+atsamd51 = ["rt", "atsamd-hal", "atsamd-hal/samd51", "unproven"]
+unproven = ["atsamd-hal/unproven"]
+rt = ["cortex-m-rt", "atsamd-hal/samd51j20a-rt"]
