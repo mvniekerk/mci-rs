@@ -1,24 +1,31 @@
-use crate::sd_mmc::sd_mmc::{SdMmcCard, ocr_voltage_support, SD_MMC_TRANS_UNITS, MMC_TRANS_MULTIPLIERS};
-use crate::sd_mmc::mci::Mci;
-use atsamd_hal::hal::digital::v2::InputPin;
-use crate::sd_mmc::commands::{MMC_MCI_CMD1_SEND_OP_COND, MMC_CMD6_SWITCH, MMC_CMD8_SEND_EXT_CSD, SDMMC_MCI_CMD0_GO_IDLE_STATE, SDMMC_CMD2_ALL_SEND_CID, MMC_CMD3_SET_RELATIVE_ADDR, SDMMC_CMD7_SELECT_CARD_CMD, SDMMC_CMD16_SET_BLOCKLEN};
-use crate::sd_mmc::registers::ocr::{OcrRegister, AccessMode};
-use crate::sd_mmc::command::mmc_commands::{BusWidth, Cmd6, Access};
-use crate::sd_mmc::mode_index::ModeIndex;
-use crate::sd_mmc::registers::sd::card_status::CardStatusRegister;
-use bit_field::BitField;
 use crate::sd_mmc::card_version::CardVersion::{Mmc, Unknown};
 use crate::sd_mmc::card_version::MmcVersion;
+use crate::sd_mmc::command::mmc_commands::{Access, BusWidth, Cmd6};
+use crate::sd_mmc::commands::{
+    MMC_CMD3_SET_RELATIVE_ADDR, MMC_CMD6_SWITCH, MMC_CMD8_SEND_EXT_CSD, MMC_MCI_CMD1_SEND_OP_COND,
+    SDMMC_CMD16_SET_BLOCKLEN, SDMMC_CMD2_ALL_SEND_CID, SDMMC_CMD7_SELECT_CARD_CMD,
+    SDMMC_MCI_CMD0_GO_IDLE_STATE,
+};
+use crate::sd_mmc::mci::Mci;
+use crate::sd_mmc::mode_index::ModeIndex;
+use crate::sd_mmc::registers::ocr::{AccessMode, OcrRegister};
+use crate::sd_mmc::registers::sd::card_status::CardStatusRegister;
+use crate::sd_mmc::sd_mmc::{
+    ocr_voltage_support, SdMmcCard, MMC_TRANS_MULTIPLIERS, SD_MMC_TRANS_UNITS,
+};
+use atsamd_hal::hal::digital::v2::InputPin;
+use bit_field::BitField;
 
 pub const EXT_CSD_CARD_TYPE_INDEX: u32 = 196;
 pub const EXT_CSD_SEC_COUNT_INDEX: u32 = 212;
 pub const EXT_CSD_BSIZE: u32 = 512;
 pub const SD_MMC_BLOCK_SIZE: u32 = 512;
 
-impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
-    where MCI: Mci,
-          WP: InputPin,       // Write protect pin
-          DETECT: InputPin    // Card detect pin
+impl<MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
+where
+    MCI: Mci,
+    WP: InputPin,     // Write protect pin
+    DETECT: InputPin, // Card detect pin
 {
     /// Sends operation condition command and read OCR (MCI only)
     pub fn mmc_mci_send_operation_condition(&mut self) -> Result<(), ()> {
@@ -27,9 +34,10 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         // Timeout is 1s = 400KHz / ((6+6)*8) cycles = 4200 retries. TODO maybe a delay check?
         for i in (0..4200).rev() {
             if i == 0 {
-                return Err(()) // TODO proper error
+                return Err(()); // TODO proper error
             }
-            self.mci.send_command(MMC_MCI_CMD1_SEND_OP_COND.into(), ocr.val)?;
+            self.mci
+                .send_command(MMC_MCI_CMD1_SEND_OP_COND.into(), ocr.val)?;
             let response = self.mci.get_response();
             let response = OcrRegister { val: response };
             if response.card_powered_up_status() {
@@ -49,10 +57,12 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             .set_bus_width(&bus_width)
             .set_mode_index(ModeIndex::BusWidth);
         self.mci.send_command(MMC_CMD6_SWITCH.into(), arg.val)?;
-        let ret = CardStatusRegister { val: self.mci.get_response() };
+        let ret = CardStatusRegister {
+            val: self.mci.get_response(),
+        };
         if ret.switch_error() {
             // Not supported, not a protocol error
-            return Ok(false)
+            return Ok(false);
         }
         self.bus_width = bus_width.clone();
         Ok(true)
@@ -67,7 +77,9 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             .set_mode_index(ModeIndex::HsTimingIndex)
             .set_hs_timing_enable(true);
         self.mci.send_command(MMC_CMD6_SWITCH.into(), arg.val)?;
-        let ret = CardStatusRegister { val: self.mci.get_response() };
+        let ret = CardStatusRegister {
+            val: self.mci.get_response(),
+        };
         if ret.switch_error() {
             // Not supported, not a protocol error
             return Ok(false);
@@ -81,7 +93,8 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     /// Returns whether high speed can be handled by this
     /// self.capacity is updated
     pub fn mmc_cmd8_high_speed_capable_and_update_capacity(&mut self) -> Result<bool, ()> {
-        self.mci.adtc_start(MMC_CMD8_SEND_EXT_CSD.into(), 0, 512, 1, false)?;
+        self.mci
+            .adtc_start(MMC_CMD8_SEND_EXT_CSD.into(), 0, 512, 1, false)?;
 
         let mut index = 0u32;
         let mut read = (0u32, 0u8);
@@ -90,7 +103,8 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             read = self.mci.read_word()?;
             index += 1;
         }
-        let high_speed_capable = (read.0 >> (EXT_CSD_CARD_TYPE_INDEX % 4) * 8).get_bits(0..2) == 0x2;   // 52MHz = 0x2, 26MHz = 0x1
+        let high_speed_capable =
+            (read.0 >> (EXT_CSD_CARD_TYPE_INDEX % 4) * 8).get_bits(0..2) == 0x2; // 52MHz = 0x2, 26MHz = 0x1
 
         if self.csd.card_size() == 0xFFF {
             // For high capacity SD/MMC card, memory capacity = sec_count * 512 bytes
@@ -117,7 +131,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             2 => Mmc(MmcVersion::Mmc2d2),
             3 => Mmc(MmcVersion::SdMmc3d0),
             4 => Mmc(MmcVersion::Mmc4d0),
-            _ => Unknown
+            _ => Unknown,
         };
 
         // 	Get MMC memory max transfer speed in Hz
@@ -139,7 +153,8 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         // 	 memory capacity = SEC_COUNT * 512 byte
 
         if self.csd.card_size() != 0xFFF {
-            let block_nr = ((self.csd.card_size() as u32) + 1) * ((self.csd.card_size_multiplier() as u32) + 2);
+            let block_nr = ((self.csd.card_size() as u32) + 1)
+                * ((self.csd.card_size_multiplier() as u32) + 2);
             self.capacity = block_nr * (1 << self.csd.read_bl_length() as u32) / 1024;
         }
         Ok(())
@@ -151,7 +166,8 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     /// At last, it will enable maximum bus width and transfer speed.
     pub fn sd_mmc_mci_install_mmc(&mut self) -> Result<(), ()> {
         // CMD0 - Reset all cards to idle state.
-        self.mci.send_command(SDMMC_MCI_CMD0_GO_IDLE_STATE.into(), 0)?;
+        self.mci
+            .send_command(SDMMC_MCI_CMD0_GO_IDLE_STATE.into(), 0)?;
         self.mmc_mci_send_operation_condition()?;
 
         // Put the card in Identify Mode
@@ -160,14 +176,16 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
 
         //Assign relative address to the card
         self.rca = 1;
-        self.mci.send_command(MMC_CMD3_SET_RELATIVE_ADDR.into(), (self.rca as u32) << 16)?;
+        self.mci
+            .send_command(MMC_CMD3_SET_RELATIVE_ADDR.into(), (self.rca as u32) << 16)?;
 
         // Get the card specific data
         self.sd_mmc_cmd9_mci()?;
         self.mmc_decode_csd()?;
 
         // Select the card and put it into Transfer mode
-        self.mci.send_command(SDMMC_CMD7_SELECT_CARD_CMD.into(), (self.rca as u32) << 16)?;
+        self.mci
+            .send_command(SDMMC_CMD7_SELECT_CARD_CMD.into(), (self.rca as u32) << 16)?;
 
         let version: usize = self.version.into();
         if version >= MmcVersion::Mmc4d0 as usize {
@@ -180,7 +198,8 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
                 self.mmc_cmd6_set_bus_width(&bus_width)?; // TODO proper error
                 self.sd_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
             }
-            if self.mci.is_high_speed_capable()? && authorize_high_speed { // TODO proper error
+            if self.mci.is_high_speed_capable()? && authorize_high_speed {
+                // TODO proper error
                 self.mmc_cmd6_set_high_speed()?; // TODO proper error
                 self.sd_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
             }
@@ -190,8 +209,12 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         for _ in 0..10 {
             // Retry is a workaround for no compliance card (Atmel Internal ref. MMC19)
             // These cards seem not ready immediately after the end of busy of mmc_cmd6_set_high_speed
-            if self.mci.send_command(SDMMC_CMD16_SET_BLOCKLEN.into(), SD_MMC_BLOCK_SIZE).is_ok() {
-                return Ok(())
+            if self
+                .mci
+                .send_command(SDMMC_CMD16_SET_BLOCKLEN.into(), SD_MMC_BLOCK_SIZE)
+                .is_ok()
+            {
+                return Ok(());
             }
         }
         Err(()) // TODO proper timeout error

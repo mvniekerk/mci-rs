@@ -1,6 +1,6 @@
-use core::hint::unreachable_unchecked;
-use bit_field::BitField;
 use crate::sd_mmc::registers::registers::Register;
+use bit_field::BitField;
+use core::hint::unreachable_unchecked;
 
 pub enum FunctionSelection {
     FunctionCia0 = 0,
@@ -11,7 +11,7 @@ pub enum FunctionSelection {
     Function5 = 5,
     Function6 = 6,
     Function7 = 7,
-    MemoryInCard = 8
+    MemoryInCard = 8,
 }
 
 impl From<u8> for FunctionSelection {
@@ -26,13 +26,13 @@ impl From<u8> for FunctionSelection {
             6 => FunctionSelection::Function6,
             7 => FunctionSelection::Function7,
             8 => FunctionSelection::MemoryInCard,
-            _ => unsafe { unreachable_unchecked() }
+            _ => unsafe { unreachable_unchecked() },
         }
     }
 }
 
 pub struct FunctionSelectionRegister {
-    pub val: u8
+    pub val: u8,
 }
 
 impl Register<u8> for FunctionSelectionRegister {

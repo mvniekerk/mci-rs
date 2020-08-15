@@ -1,12 +1,12 @@
-use core::hint::unreachable_unchecked;
-use bit_field::BitField;
 use crate::sd_mmc::registers::registers::Register;
+use bit_field::BitField;
+use core::hint::unreachable_unchecked;
 
 pub enum BusWidth {
     /// 1-bit data bus
     _1bit = 0,
     /// 4-bit data bus
-    _4bit = 2
+    _4bit = 2,
 }
 
 impl From<u8> for BusWidth {
@@ -14,13 +14,13 @@ impl From<u8> for BusWidth {
         match val {
             0 => BusWidth::_1bit,
             2 => BusWidth::_4bit,
-            _ => unsafe { unreachable_unchecked() }
+            _ => unsafe { unreachable_unchecked() },
         }
     }
 }
 
 pub struct BusInterfaceControlRegister {
-    pub val: u8
+    pub val: u8,
 }
 
 impl Register<u8> for BusInterfaceControlRegister {

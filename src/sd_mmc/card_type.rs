@@ -2,7 +2,7 @@ use crate::sd_mmc::registers::registers::Register;
 use bit_field::BitField;
 
 pub struct CardType {
-    pub val: u8
+    pub val: u8,
 }
 
 impl Register<u8> for CardType {

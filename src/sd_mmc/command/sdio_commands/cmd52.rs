@@ -1,21 +1,21 @@
-use bit_field::BitField;
 use crate::sd_mmc::registers::registers::Register;
+use bit_field::BitField;
 
 pub struct Cmd52 {
-    pub val: u32
+    pub val: u32,
 }
 
 #[derive(PartialEq)]
 pub enum Direction {
     Read = 0,
-    Write = 1
+    Write = 1,
 }
 
 impl From<bool> for Direction {
     fn from(val: bool) -> Self {
         match val {
             false => Direction::Read,
-            true => Direction::Write
+            true => Direction::Write,
         }
     }
 }

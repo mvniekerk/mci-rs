@@ -99,25 +99,24 @@ impl CommandFlag for SdioWriteBlock {
 }
 
 pub enum CommandFlags {
-    NoFlag              = 0,
+    NoFlag = 0,
     // Open drain for a broadcast command = bc,
     // or to enter in inactive state = MCI only,
-    OpenDrain    = 1 << 14,
+    OpenDrain = 1 << 14,
     // To signal a data write operation
-    Write        = 1 << 15,
+    Write = 1 << 15,
     // To signal a SDIO tranfer in multi byte mode
-    SdioByte     = 1 << 16,
+    SdioByte = 1 << 16,
     // To signal a SDIO tranfer in block mode
-    SdioBlock    = 1 << 17,
+    SdioBlock = 1 << 17,
     // To signal a data transfer in stream mode
-    Stream       = 1 << 18,
+    Stream = 1 << 18,
     // To signal a data transfer in single block mode
-    SingleBlock  = 1 << 19,
+    SingleBlock = 1 << 19,
     // To signal a data transfer in multi block mode
-    MultiBlock   = 1 << 20,
+    MultiBlock = 1 << 20,
     WriteSingleBlock = (1 << 19) | (1 << 15),
     WriteMultiBlock = (1 << 20) | (1 << 15),
     SdioWriteByte = (1 << 16) | (1 << 15),
-    SdioWriteBlock = (1 << 17) | (1 << 15)
+    SdioWriteBlock = (1 << 17) | (1 << 15),
 }
-

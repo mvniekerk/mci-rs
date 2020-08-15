@@ -3,7 +3,7 @@ use bit_field::BitField;
 use core::hint::unreachable_unchecked;
 
 pub struct OcrRegister {
-    pub val: u32
+    pub val: u32,
 }
 
 impl Register<u32> for OcrRegister {
@@ -22,7 +22,7 @@ pub enum AccessMode {
     /// Byte access mode
     Byte = 0,
     /// Sector access mode
-    Sector = 2
+    Sector = 2,
 }
 
 impl From<u32> for AccessMode {
@@ -30,7 +30,7 @@ impl From<u32> for AccessMode {
         match val {
             0 => AccessMode::Byte,
             2 => AccessMode::Sector,
-            _ => unsafe { unreachable_unchecked() }
+            _ => unsafe { unreachable_unchecked() },
         }
     }
 }
@@ -40,7 +40,7 @@ impl OcrRegister {
         self.val.set_bit(7, enabled);
         self
     }
-    
+
     pub fn vdd_170_195(&self) -> bool {
         self.val.get_bit(7)
     }
@@ -49,7 +49,7 @@ impl OcrRegister {
         self.val.set_bit(8, enabled);
         self
     }
-    
+
     pub fn vdd_20_21(&self) -> bool {
         self.val.get_bit(8)
     }
@@ -58,7 +58,7 @@ impl OcrRegister {
         self.val.set_bit(9, enabled);
         self
     }
-    
+
     pub fn vdd_21_22(&self) -> bool {
         self.val.get_bit(9)
     }
@@ -67,7 +67,7 @@ impl OcrRegister {
         self.val.set_bit(10, enabled);
         self
     }
-    
+
     pub fn vdd_22_23(&self) -> bool {
         self.val.get_bit(10)
     }
@@ -76,7 +76,7 @@ impl OcrRegister {
         self.val.set_bit(11, enabled);
         self
     }
-    
+
     pub fn vdd_23_24(&self) -> bool {
         self.val.get_bit(11)
     }
@@ -85,7 +85,7 @@ impl OcrRegister {
         self.val.set_bit(12, enabled);
         self
     }
-    
+
     pub fn vdd_24_25(&self) -> bool {
         self.val.get_bit(12)
     }
@@ -94,7 +94,7 @@ impl OcrRegister {
         self.val.set_bit(13, enabled);
         self
     }
-    
+
     pub fn vdd_25_26(&self) -> bool {
         self.val.get_bit(13)
     }
@@ -103,7 +103,7 @@ impl OcrRegister {
         self.val.set_bit(14, enabled);
         self
     }
-    
+
     pub fn vdd_26_27(&self) -> bool {
         self.val.get_bit(14)
     }
@@ -112,7 +112,7 @@ impl OcrRegister {
         self.val.set_bit(15, enabled);
         self
     }
-    
+
     pub fn vdd_27_28(&self) -> bool {
         self.val.get_bit(15)
     }
@@ -121,7 +121,7 @@ impl OcrRegister {
         self.val.set_bit(16, enabled);
         self
     }
-    
+
     pub fn vdd_28_29(&self) -> bool {
         self.val.get_bit(16)
     }
@@ -130,7 +130,7 @@ impl OcrRegister {
         self.val.set_bit(17, enabled);
         self
     }
-    
+
     pub fn vdd_29_30(&self) -> bool {
         self.val.get_bit(17)
     }
@@ -139,7 +139,7 @@ impl OcrRegister {
         self.val.set_bit(18, enabled);
         self
     }
-    
+
     pub fn vdd_30_31(&self) -> bool {
         self.val.get_bit(18)
     }
@@ -148,7 +148,7 @@ impl OcrRegister {
         self.val.set_bit(19, enabled);
         self
     }
-    
+
     pub fn vdd_31_32(&self) -> bool {
         self.val.get_bit(19)
     }
@@ -157,7 +157,7 @@ impl OcrRegister {
         self.val.set_bit(20, enabled);
         self
     }
-    
+
     pub fn vdd_32_33(&self) -> bool {
         self.val.get_bit(20)
     }
@@ -166,7 +166,7 @@ impl OcrRegister {
         self.val.set_bit(21, enabled);
         self
     }
-    
+
     pub fn vdd_33_34(&self) -> bool {
         self.val.get_bit(21)
     }
@@ -175,7 +175,7 @@ impl OcrRegister {
         self.val.set_bit(22, enabled);
         self
     }
-    
+
     pub fn vdd_34_35(&self) -> bool {
         self.val.get_bit(22)
     }
@@ -184,7 +184,7 @@ impl OcrRegister {
         self.val.set_bit(23, enabled);
         self
     }
-    
+
     pub fn vdd_35_36(&self) -> bool {
         self.val.get_bit(23)
     }

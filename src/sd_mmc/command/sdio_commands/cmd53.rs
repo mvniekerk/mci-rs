@@ -1,9 +1,9 @@
-use bit_field::BitField;
 use crate::sd_mmc::command::sdio_commands::cmd52::Direction;
+use bit_field::BitField;
 
 #[derive(Default)]
 pub struct Cmd53 {
-    pub val: u32
+    pub val: u32,
 }
 
 #[derive(PartialEq)]

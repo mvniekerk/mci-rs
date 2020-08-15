@@ -1,19 +1,24 @@
-use crate::sd_mmc::mci::Mci;
 use crate::sd_mmc::command::mmc_commands::BusWidth;
+use crate::sd_mmc::command::MciCommand;
+use crate::sd_mmc::mci::Mci;
 use atsamd_hal::target_device::SDHC0;
 use bit_field::BitField;
-use crate::sd_mmc::command::MciCommand;
 
 pub struct AtsamdMci {
     sdhc: SDHC0,
     trans_pos: u64,
     block_size: u16,
-    block_amount: u16
+    block_amount: u16,
 }
 
 impl AtsamdMci {
     pub fn new(sdhc: SDHC0) -> Result<AtsamdMci, ()> {
-        Ok(AtsamdMci{ sdhc, trans_pos: 0, block_size: 0, block_amount: 0 })
+        Ok(AtsamdMci {
+            sdhc,
+            trans_pos: 0,
+            block_size: 0,
+            block_amount: 0,
+        })
     }
 
     pub fn reset(&mut self) {
@@ -24,10 +29,10 @@ impl AtsamdMci {
         for n in (0u32..=0xFFFFFFFFu32).rev() {
             if n == 0 {
                 self.reset();
-                return Err(())
+                return Err(());
             }
             if self.sdhc.psr.read().datll().bits() == 0x1 {
-                return Ok(())
+                return Ok(());
             }
         }
         Ok(())
@@ -65,16 +70,19 @@ impl AtsamdMci {
 
         // Specific constraint for SDHC/SDMMC IP
         // The clock divider (DIV) in SDMMC_CCR must be set to a value different from 0 when HSEN is 1.
-        div = if self.sdhc.hc1r().read().hsen().bit_is_set() && div == 0 { 1 } else { div };
+        div = if self.sdhc.hc1r().read().hsen().bit_is_set() && div == 0 {
+            1
+        } else {
+            div
+        };
 
         // Set clock divider
-        self.sdhc.ccr.modify(|_, w|
-            unsafe {
-                w
-                    .sdclkfsel().bits( (div as u8) & 0xFF)
-                    .usdclkfsel().bits( (div >> 8) as u8)
-            }
-        );
+        self.sdhc.ccr.modify(|_, w| unsafe {
+            w.sdclkfsel()
+                .bits((div as u8) & 0xFF)
+                .usdclkfsel()
+                .bits((div >> 8) as u8)
+        });
 
         self.sdhc.ccr.modify(|_, w| w.intclken().set_bit());
 
@@ -85,17 +93,21 @@ impl AtsamdMci {
         self.sdhc.ccr.modify(|_, w| w.sdclken().set_bit());
     }
 
-
     /// Send a command
     pub fn send_command_execute(&mut self, mut cmdr: u16, cmd: u32, arg: u32) -> Result<(), ()> {
         cmdr.set_bits(8..16, cmd as u16);
         let cmd: MciCommand = cmd.into();
 
         if cmd.have_response() {
-            cmdr.set_bits(0..2,
-                          if cmd.have_136bit_response() { 0x1 }
-                          else if cmd.card_may_send_busy() { 0x3 }
-                          else { 0x2 }
+            cmdr.set_bits(
+                0..2,
+                if cmd.have_136bit_response() {
+                    0x1
+                } else if cmd.card_may_send_busy() {
+                    0x3
+                } else {
+                    0x2
+                },
             );
         }
 
@@ -108,24 +120,22 @@ impl AtsamdMci {
         });
 
         self.sdhc.arg1r.write(|w| unsafe { w.bits(arg) });
-        self.sdhc.cr.write(|w| unsafe { w.bits(cmdr)} );
+        self.sdhc.cr.write(|w| unsafe { w.bits(cmdr) });
 
         loop {
             let sr = self.sdhc.eister().read();
-            if (
-                sr.cmdteo().bit_is_set() ||
-                    sr.cmdend().bit_is_set() ||
-                    sr.cmdidx().bit_is_set() ||
-                    sr.datteo().bit_is_set() ||
-                    sr.datend().bit_is_set() ||
-                    sr.adma().bit_is_set()
-            ) || (cmd.expect_valid_crc() && (
-                sr.cmdcrc().bit_is_set() ||
-                    sr.datcrc().bit_is_set()
-            )) {
+            if (sr.cmdteo().bit_is_set()
+                || sr.cmdend().bit_is_set()
+                || sr.cmdidx().bit_is_set()
+                || sr.datteo().bit_is_set()
+                || sr.datend().bit_is_set()
+                || sr.adma().bit_is_set())
+                || (cmd.expect_valid_crc()
+                    && (sr.cmdcrc().bit_is_set() || sr.datcrc().bit_is_set()))
+            {
                 self.reset();
-                self.sdhc.eister().write(|w| unsafe { w.bits(0x03FF) } );
-                return Err(())
+                self.sdhc.eister().write(|w| unsafe { w.bits(0x03FF) });
+                return Err(());
             }
             if self.sdhc.nistr().read().cmdc().bit_is_clear() {
                 break;
@@ -147,14 +157,17 @@ impl AtsamdMci {
         let sr = self.sdhc.eistr().read();
         if sr.datteo().bit_is_set() || sr.datcrc().bit_is_set() || sr.datend().bit_is_set() {
             self.reset();
-            return Err(()) // TODO proper error
+            return Err(()); // TODO proper error
         }
         Ok(())
     }
 
-    pub fn loop_or_on_eistr_err<F: FnMut(&mut AtsamdMci) -> bool>(&mut self, mut f: F) -> Result<(), ()> {
+    pub fn loop_or_on_eistr_err<F: FnMut(&mut AtsamdMci) -> bool>(
+        &mut self,
+        mut f: F,
+    ) -> Result<(), ()> {
         loop {
-            self.eistr_err()?;  // TODO proper error
+            self.eistr_err()?; // TODO proper error
             if f(self) {
                 break;
             }
@@ -176,11 +189,7 @@ impl Mci for AtsamdMci {
         self.sdhc.tcr.write(|w| unsafe { w.bits(0xe) });
 
         /* Set 3v3 power supply */
-        self.sdhc.pcr.write(|w|
-            w
-            .sdbpwr().on()
-            .sdbvsel()._3v3()
-        );
+        self.sdhc.pcr.write(|w| w.sdbpwr().on().sdbvsel()._3v3());
 
         self.sdhc.nister().write(|w| unsafe { w.bits(0x01FF) });
         self.sdhc.eister().write(|w| unsafe { w.bits(0x03FF) });
@@ -190,7 +199,7 @@ impl Mci for AtsamdMci {
 
     fn send_command(&mut self, cmd: u32, arg: u32) -> Result<(), ()> {
         if self.sdhc.psr.read().cmdinhc().bit_is_set() {
-            return Err(()) // TODO proper error
+            return Err(()); // TODO proper error
         }
 
         self.sdhc.tmr.modify(|_, w| w.dmaen().clear_bit());
@@ -203,7 +212,13 @@ impl Mci for AtsamdMci {
         Ok(())
     }
 
-    fn select_device(&mut self, _slot: u8, clock: u32, bus_width: &BusWidth, high_speed: bool) -> Result<(), ()> {
+    fn select_device(
+        &mut self,
+        _slot: u8,
+        clock: u32,
+        bus_width: &BusWidth,
+        high_speed: bool,
+    ) -> Result<(), ()> {
         self.sdhc.hc1r().modify(|_, w| {
             if high_speed {
                 w.hsen().set_bit()
@@ -219,7 +234,7 @@ impl Mci for AtsamdMci {
         match bus_width {
             BusWidth::_1BIT => self.sdhc.hc1r().modify(|_, w| w.dw().clear_bit()),
             BusWidth::_4BIT => self.sdhc.hc1r().modify(|_, w| w.dw().set_bit()),
-            _ => return Err(()) // TODO proper error for invalid argument
+            _ => return Err(()), // TODO proper error for invalid argument
         }
         Ok(())
     }
@@ -232,7 +247,7 @@ impl Mci for AtsamdMci {
     fn get_bus_width(&mut self, slot: u8) -> Result<BusWidth, ()> {
         match slot {
             0 => Ok(BusWidth::_4BIT),
-            _ => Err(()) // TOD proper error for invalid argument
+            _ => Err(()), // TOD proper error for invalid argument
         }
     }
 
@@ -258,23 +273,31 @@ impl Mci for AtsamdMci {
             self.sdhc.rr[0].read().cmdresp().bits(),
             self.sdhc.rr[1].read().cmdresp().bits(),
             self.sdhc.rr[2].read().cmdresp().bits(),
-            self.sdhc.rr[3].read().cmdresp().bits()
+            self.sdhc.rr[3].read().cmdresp().bits(),
         ]
     }
 
-    fn adtc_start(&mut self, command: u32, argument: u32, block_size: u16, block_amount: u16, _access_in_blocks: bool) -> Result<(), ()> {
+    fn adtc_start(
+        &mut self,
+        command: u32,
+        argument: u32,
+        block_size: u16,
+        block_amount: u16,
+        _access_in_blocks: bool,
+    ) -> Result<(), ()> {
         let psr = self.sdhc.psr.read();
         // Check Command Inhibit (CMD/DAT) in the Present State register
         if psr.cmdinhc().bit_is_set() || psr.cmdinhd().bit_is_set() {
-            return Err(())  // TODO proper error why we're erroring
+            return Err(()); // TODO proper error why we're erroring
         }
 
         let command: MciCommand = command.into();
-        if !command.sdio_multi_byte_transfer() &&
-            !command.sdio_block_mode_transfer() &&
-            !command.single_block_data_transfer() &&
-            !command.multi_block_data_transfer() {
-            return Err(()) // TODO proper error
+        if !command.sdio_multi_byte_transfer()
+            && !command.sdio_block_mode_transfer()
+            && !command.single_block_data_transfer()
+            && !command.multi_block_data_transfer()
+        {
+            return Err(()); // TODO proper error
         }
 
         self.sdhc.tmr.write(|w| {
@@ -286,24 +309,21 @@ impl Mci for AtsamdMci {
             if command.sdio_multi_byte_transfer() {
                 w.msbsel().single();
             } else if command.sdio_block_mode_transfer() {
-                w
-                    .bcen().enable()
-                    .msbsel().multiple();
+                w.bcen().enable().msbsel().multiple();
             } else if command.single_block_data_transfer() {
                 w.msbsel().single();
             } else if command.multi_block_data_transfer() {
-                w
-                    .bcen().enable()
-                    .msbsel().multiple();
+                w.bcen().enable().msbsel().multiple();
             }
             w
         });
 
-        self.sdhc.bsr.write(|w| unsafe {
-            w.blocksize().bits(block_size)
-        }.boundary()._4k()
-        );
-        self.sdhc.bcr.write(|w| unsafe { w.bcnt().bits(block_amount) });
+        self.sdhc
+            .bsr
+            .write(|w| unsafe { w.blocksize().bits(block_size) }.boundary()._4k());
+        self.sdhc
+            .bcr
+            .write(|w| unsafe { w.bcnt().bits(block_amount) });
 
         self.block_amount = block_amount;
         self.block_size = block_size;
@@ -318,25 +338,30 @@ impl Mci for AtsamdMci {
     }
 
     fn read_word(&mut self) -> Result<(u32, u8), ()> {
-        let nbytes: u8 = if ((self.block_size as u64) * (self.block_amount as u64)) - self.trans_pos > 4 { (self.block_size % 4) as u8 } else { 4 };
+        let nbytes: u8 =
+            if ((self.block_size as u64) * (self.block_amount as u64)) - self.trans_pos > 4 {
+                (self.block_size % 4) as u8
+            } else {
+                4
+            };
 
         if self.trans_pos % (self.block_size as u64) == 0 {
             self.loop_or_on_eistr_err(|f| f.sdhc.nistr().read().brdrdy().bit_is_set())?;
         }
 
         // Read data
-        let val = self.sdhc.bdpr.read().bits() &
-            match nbytes {
+        let val = self.sdhc.bdpr.read().bits()
+            & match nbytes {
                 3 => 0xFFFF_FF,
                 2 => 0xFFFF,
                 1 => 0xFF,
-                _ => 0xFFFF_FFFF
+                _ => 0xFFFF_FFFF,
             };
 
         self.trans_pos += nbytes as u64;
 
-        if (self.block_size as u64)*(self.block_amount as u64) > self.trans_pos {
-            return Ok((val, nbytes))
+        if (self.block_size as u64) * (self.block_amount as u64) > self.trans_pos {
+            return Ok((val, nbytes));
         }
 
         // Wait end of transfer
@@ -355,8 +380,8 @@ impl Mci for AtsamdMci {
         self.sdhc.bdpr.write(|w| unsafe { w.bits(val) });
         self.trans_pos += nbytes;
 
-        if (self.block_size as u64)*(self.block_amount as u64) > self.trans_pos {
-            return Ok(true)
+        if (self.block_size as u64) * (self.block_amount as u64) > self.trans_pos {
+            return Ok(true);
         }
 
         // Wait end of transfer
@@ -366,7 +391,6 @@ impl Mci for AtsamdMci {
     }
 
     fn read_blocks(&mut self, destination: &mut [u8], number_of_blocks: u16) -> Result<bool, ()> {
-
         let mut data = (number_of_blocks as u64) * (self.block_size as u64);
         let len = data as usize;
         let mut index = 0usize;
@@ -378,9 +402,13 @@ impl Mci for AtsamdMci {
                 if mm + index >= len {
                     break;
                 }
-                destination[index + mm] = val.get_bits((mm*8)..((mm+1)*8)) as u8;
+                destination[index + mm] = val.get_bits((mm * 8)..((mm + 1) * 8)) as u8;
             }
-            let nbytes = if (nbytes as u64) > data { (self.block_size % (nbytes as u16)) as u8 } else { nbytes };
+            let nbytes = if (nbytes as u64) > data {
+                (self.block_size % (nbytes as u16)) as u8
+            } else {
+                nbytes
+            };
             index += nbytes as usize;
             data -= nbytes as u64;
         }

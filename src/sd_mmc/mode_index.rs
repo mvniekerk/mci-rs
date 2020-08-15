@@ -24,7 +24,7 @@ impl From<u32> for ModeIndex {
             0xBB => ModeIndex::PowerClass,
             0xBD => ModeIndex::SetRev,
             0xBF => ModeIndex::Set,
-            _ => unsafe { unreachable_unchecked() }
+            _ => unsafe { unreachable_unchecked() },
         }
     }
 }

@@ -36,8 +36,8 @@ impl Response for CmdR1R6 {
 
 #[derive(Default)]
 pub struct CmdR1B;
-impl ResponsePresent for CmdR1B{}
-impl ResponseBusy for CmdR1B{}
+impl ResponsePresent for CmdR1B {}
+impl ResponseBusy for CmdR1B {}
 impl ResponseCrc for CmdR1B {}
 impl Response for CmdR1B {
     #[inline(always)]
@@ -95,20 +95,29 @@ impl Response for CmdR7 {
 }
 
 pub enum ResponseFlags {
-    ResponsePresent     = 1 << 8,
-    Response8           = 1 << 9,
-    Response32          = 1 << 10,
-    Response136         = 1 << 11,
-    ResponseCrc         = 1 << 12,
-    ResponseBusy        = 1 << 13,
+    ResponsePresent = 1 << 8,
+    Response8 = 1 << 9,
+    Response32 = 1 << 10,
+    Response136 = 1 << 11,
+    ResponseCrc = 1 << 12,
+    ResponseBusy = 1 << 13,
 }
 
 pub enum ResponseType {
     NoResponse = 0,
-    CmdR1R6     = ResponseFlags::ResponsePresent as isize | ResponseFlags::ResponseCrc as isize,
-    CmdR1B      = ResponseFlags::ResponsePresent as isize | ResponseFlags::ResponseCrc as isize | ResponseFlags::ResponseBusy as isize,
-    CmdR2       = ResponseFlags::ResponsePresent as isize | ResponseFlags::Response8 as isize | ResponseFlags::Response136 as isize | ResponseFlags::ResponseCrc as isize,
-    CmdR3R4     = ResponseFlags::ResponsePresent as isize | ResponseFlags::Response32 as isize,
-    CmdR5       = ResponseFlags::ResponsePresent as isize | ResponseFlags::Response8 as isize | ResponseFlags::ResponseCrc as isize,
-    CmdR7       = ResponseFlags::ResponsePresent as isize | ResponseFlags::Response32 as isize | ResponseFlags::ResponseCrc as isize
+    CmdR1R6 = ResponseFlags::ResponsePresent as isize | ResponseFlags::ResponseCrc as isize,
+    CmdR1B = ResponseFlags::ResponsePresent as isize
+        | ResponseFlags::ResponseCrc as isize
+        | ResponseFlags::ResponseBusy as isize,
+    CmdR2 = ResponseFlags::ResponsePresent as isize
+        | ResponseFlags::Response8 as isize
+        | ResponseFlags::Response136 as isize
+        | ResponseFlags::ResponseCrc as isize,
+    CmdR3R4 = ResponseFlags::ResponsePresent as isize | ResponseFlags::Response32 as isize,
+    CmdR5 = ResponseFlags::ResponsePresent as isize
+        | ResponseFlags::Response8 as isize
+        | ResponseFlags::ResponseCrc as isize,
+    CmdR7 = ResponseFlags::ResponsePresent as isize
+        | ResponseFlags::Response32 as isize
+        | ResponseFlags::ResponseCrc as isize,
 }

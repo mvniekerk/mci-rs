@@ -4,5 +4,5 @@ pub enum CardState {
     Debounce,
     Init,
     Unusable,
-    NoCard
+    NoCard,
 }

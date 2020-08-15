@@ -1,14 +1,14 @@
-use bit_field::BitField;
 use crate::sd_mmc::registers::registers::SdMmcRegister;
+use bit_field::BitField;
 
 pub struct Cmd6 {
-    pub val: u32
+    pub val: u32,
 }
 
 #[derive(PartialEq)]
 pub enum Cmd6Mode {
     Check = 0,
-    Switch = 1
+    Switch = 1,
 }
 
 impl From<Cmd6Mode> for bool {
@@ -48,7 +48,8 @@ impl Cmd6 {
     }
 
     pub fn set_function_group2_command_system(&mut self, no_influence: bool) -> &mut Self {
-        self.val.set_bits(4..=7, if no_influence { 0xF } else { 0x0 });
+        self.val
+            .set_bits(4..=7, if no_influence { 0xF } else { 0x0 });
         self
     }
 
@@ -57,7 +58,8 @@ impl Cmd6 {
     }
 
     pub fn set_function_group3(&mut self, no_influence: bool) -> &mut Self {
-        self.val.set_bits(8..=11, if no_influence { 0xF } else { 0x0 });
+        self.val
+            .set_bits(8..=11, if no_influence { 0xF } else { 0x0 });
         self
     }
 
@@ -66,7 +68,8 @@ impl Cmd6 {
     }
 
     pub fn set_function_group4(&mut self, no_influence: bool) -> &mut Self {
-        self.val.set_bits(12..=15, if no_influence { 0xF } else { 0x0 });
+        self.val
+            .set_bits(12..=15, if no_influence { 0xF } else { 0x0 });
         self
     }
 
@@ -75,7 +78,8 @@ impl Cmd6 {
     }
 
     pub fn set_function_group5(&mut self, no_influence: bool) -> &mut Self {
-        self.val.set_bits(16..=19, if no_influence { 0xF } else { 0x0 });
+        self.val
+            .set_bits(16..=19, if no_influence { 0xF } else { 0x0 });
         self
     }
 
@@ -84,7 +88,8 @@ impl Cmd6 {
     }
 
     pub fn set_function_group6(&mut self, no_influence: bool) -> &mut Self {
-        self.val.set_bits(20..=23, if no_influence { 0xF } else { 0x0 });
+        self.val
+            .set_bits(20..=23, if no_influence { 0xF } else { 0x0 });
         self
     }
 
@@ -101,4 +106,3 @@ impl Cmd6 {
         self.val.get_bit(31).into()
     }
 }
-

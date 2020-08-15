@@ -1,7 +1,7 @@
 use crate::sd_mmc::registers::registers::Register;
 
 pub struct CisPointerRegister {
-    pub val: u8
+    pub val: u8,
 }
 
 impl Register<u8> for CisPointerRegister {

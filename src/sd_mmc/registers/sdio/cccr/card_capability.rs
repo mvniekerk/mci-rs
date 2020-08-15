@@ -1,8 +1,8 @@
-use bit_field::BitField;
 use crate::sd_mmc::registers::registers::Register;
+use bit_field::BitField;
 
 pub struct CardCapabilityRegister {
-    pub val: u8
+    pub val: u8,
 }
 
 impl Register<u8> for CardCapabilityRegister {
@@ -48,7 +48,10 @@ impl CardCapabilityRegister {
         self.val.get_bit(3)
     }
 
-    pub fn set_supports_interrupt_between_blocks_of_data_in_4bit_sd_mode(&mut self, supports: bool) {
+    pub fn set_supports_interrupt_between_blocks_of_data_in_4bit_sd_mode(
+        &mut self,
+        supports: bool,
+    ) {
         self.val.set_bit(4, supports);
     }
 

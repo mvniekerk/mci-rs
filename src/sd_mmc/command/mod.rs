@@ -1,14 +1,14 @@
 use crate::sd_mmc::registers::registers::Register;
 use bit_field::BitField;
 
+pub mod flags;
 pub mod mmc_commands;
+pub mod response_type;
 pub mod sd_commands;
 pub mod sdio_commands;
-pub mod response_type;
-pub mod flags;
 
 pub struct MciCommand {
-    pub val: u32
+    pub val: u32,
 }
 
 impl Register<u32> for MciCommand {

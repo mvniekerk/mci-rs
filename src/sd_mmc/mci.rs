@@ -11,7 +11,13 @@ pub trait Mci {
     fn deinit(&mut self) -> Result<(), ()>;
 
     /// Select a device and initialize it
-    fn select_device(&mut self, slot: u8, clock: u32, bus_width: &BusWidth, high_speed: bool) -> Result<(), ()>;
+    fn select_device(
+        &mut self,
+        slot: u8,
+        clock: u32,
+        bus_width: &BusWidth,
+        high_speed: bool,
+    ) -> Result<(), ()>;
 
     /// Deselect device
     fn deselect_device(&mut self, slot: u8) -> Result<(), ()>;
@@ -41,7 +47,14 @@ pub trait Mci {
     /// * `block_amount`: Amount of blocks to transfer
     /// * `access_in_blocks`: If true - read_blocks/write_blocks must be used after this command
     ///                 Otherwise read_word/write_word must be used
-    fn adtc_start(&mut self, command: u32, argument: u32, block_size: u16, block_amount: u16, access_in_blocks: bool) -> Result<(), ()>;
+    fn adtc_start(
+        &mut self,
+        command: u32,
+        argument: u32,
+        block_size: u16,
+        block_amount: u16,
+        access_in_blocks: bool,
+    ) -> Result<(), ()>;
 
     /// ADTC command stop
     /// Send a command to stop an ADTC

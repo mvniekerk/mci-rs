@@ -1,6 +1,6 @@
+use crate::sd_mmc::registers::registers::Register;
 use bit_field::BitField;
 use core::hint::unreachable_unchecked;
-use crate::sd_mmc::registers::registers::Register;
 
 pub enum CccrRevision {
     /// CCCR/FBR revision 1.00
@@ -10,7 +10,7 @@ pub enum CccrRevision {
     /// CCCR/FBR revision 2.00
     Revision2_00 = 2,
     /// CCCR/FBR revision 3.00
-    Revision3_00 = 3
+    Revision3_00 = 3,
 }
 
 impl From<u8> for CccrRevision {
@@ -20,7 +20,7 @@ impl From<u8> for CccrRevision {
             1 => CccrRevision::Revision1_10,
             2 => CccrRevision::Revision2_00,
             3 => CccrRevision::Revision3_00,
-            _ => unsafe { unreachable_unchecked() }
+            _ => unsafe { unreachable_unchecked() },
         }
     }
 }
@@ -35,7 +35,7 @@ pub enum SdioSpecification {
     /// SDIO specification version 2.00
     Specification2_00 = 3,
     /// SDIO specification version 3.00
-    Specification3_00 = 4
+    Specification3_00 = 4,
 }
 
 impl From<u8> for SdioSpecification {
@@ -46,13 +46,13 @@ impl From<u8> for SdioSpecification {
             2 => SdioSpecification::Specification1_20,
             3 => SdioSpecification::Specification2_00,
             4 => SdioSpecification::Specification3_00,
-            _ => unsafe { unreachable_unchecked() }
+            _ => unsafe { unreachable_unchecked() },
         }
     }
 }
 
 pub struct CccrSdioRevisionRegister {
-    pub val: u8
+    pub val: u8,
 }
 
 impl Register<u8> for CccrSdioRevisionRegister {
@@ -81,5 +81,3 @@ impl CccrSdioRevisionRegister {
         self.val.get_bits(4..7).into()
     }
 }
-
-

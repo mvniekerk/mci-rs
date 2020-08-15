@@ -1,37 +1,50 @@
-use crate::sd_mmc::mci::Mci;
 use crate::sd_mmc::card_state::CardState;
 use crate::sd_mmc::card_type::CardType;
+use crate::sd_mmc::card_version::CardVersion::SdCard;
 use crate::sd_mmc::card_version::{CardVersion, SdCardVersion};
-use crate::sd_mmc::registers::csd::{CsdRegister, SdCsdStructureVersion};
-use atsamd_hal::hal::digital::v2::InputPin;
-use crate::sd_mmc::commands::{SD_MCI_ACMD41_SD_SEND_OP_COND, SDMMC_CMD55_APP_CMD, SD_CMD6_SWITCH_FUNC, Command, SD_CMD8_SEND_IF_COND, SDMMC_MCI_CMD9_SEND_CSD, SDMMC_MCI_CMD13_SEND_STATUS, SD_ACMD6_SET_BUS_WIDTH, SD_ACMD51_SEND_SCR, SDMMC_CMD18_READ_MULTIPLE_BLOCK, SDMMC_CMD17_READ_SINGLE_BLOCK, SDMMC_CMD12_STOP_TRANSMISSION, SDMMC_CMD25_WRITE_MULTIPLE_BLOCK, SDMMC_CMD24_WRITE_BLOCK};
-use crate::sd_mmc::registers::ocr::OcrRegister;
-use bit_field::BitField;
-use crate::sd_mmc::registers::registers::{Register, SdMmcRegister};
-use crate::sd_mmc::registers::sd::switch_status::{SwitchStatusRegister, SD_SW_STATUS_FUN_GRP_RC_ERROR};
-use crate::sd_mmc::command::sd_commands::cmd6::{Cmd6, Cmd6Mode};
 use crate::sd_mmc::command::flags::CommandFlag;
-use crate::sd_mmc::command::response_type::Response;
 use crate::sd_mmc::command::mmc_commands::BusWidth;
+use crate::sd_mmc::command::response_type::Response;
+use crate::sd_mmc::command::sd_commands::cmd6::{Cmd6, Cmd6Mode};
 use crate::sd_mmc::command::sd_commands::cmd8::Cmd8;
+use crate::sd_mmc::commands::{
+    Command, SDMMC_CMD12_STOP_TRANSMISSION, SDMMC_CMD17_READ_SINGLE_BLOCK,
+    SDMMC_CMD18_READ_MULTIPLE_BLOCK, SDMMC_CMD24_WRITE_BLOCK, SDMMC_CMD25_WRITE_MULTIPLE_BLOCK,
+    SDMMC_CMD55_APP_CMD, SDMMC_MCI_CMD13_SEND_STATUS, SDMMC_MCI_CMD9_SEND_CSD, SD_ACMD51_SEND_SCR,
+    SD_ACMD6_SET_BUS_WIDTH, SD_CMD6_SWITCH_FUNC, SD_CMD8_SEND_IF_COND,
+    SD_MCI_ACMD41_SD_SEND_OP_COND,
+};
+use crate::sd_mmc::mci::Mci;
+use crate::sd_mmc::mmc::SD_MMC_BLOCK_SIZE;
+use crate::sd_mmc::registers::csd::{CsdRegister, SdCsdStructureVersion};
+use crate::sd_mmc::registers::ocr::OcrRegister;
+use crate::sd_mmc::registers::registers::{Register, SdMmcRegister};
 use crate::sd_mmc::registers::sd::card_status::CardStatusRegister;
 use crate::sd_mmc::registers::sd::scr::ScrRegister;
+use crate::sd_mmc::registers::sd::switch_status::{
+    SwitchStatusRegister, SD_SW_STATUS_FUN_GRP_RC_ERROR,
+};
 use crate::sd_mmc::sd::sd_physical_specification::SdPhysicalSpecification;
-use crate::sd_mmc::card_version::CardVersion::SdCard;
-use crate::sd_mmc::mmc::SD_MMC_BLOCK_SIZE;
 use crate::sd_mmc::transfer::TransferTransaction;
+use atsamd_hal::hal::digital::v2::InputPin;
+use bit_field::BitField;
 
 // SD/MMC transfer rate unit codes (10K) list
 pub const SD_MMC_TRANS_UNITS: [u32; 7] = [10, 100, 1_000, 10_000, 0, 0, 0];
 // SD transfer multiplier factor codes (1/10) list
-pub const SD_TRANS_MULTIPLIERS: [u32; 16] = [0, 10, 12, 13, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80];
+pub const SD_TRANS_MULTIPLIERS: [u32; 16] = [
+    0, 10, 12, 13, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80,
+];
 // MMC transfer multiplier factor codes (1/10) list
-pub const MMC_TRANS_MULTIPLIERS: [u32; 16] = [0, 10, 12, 13, 15, 20, 26, 30, 35, 40, 45, 52, 55, 60, 70, 80];
+pub const MMC_TRANS_MULTIPLIERS: [u32; 16] = [
+    0, 10, 12, 13, 15, 20, 26, 30, 35, 40, 45, 52, 55, 60, 70, 80,
+];
 
 pub struct SdMmcCard<MCI, WP, DETECT>
-    where MCI: Mci,
-    WP: InputPin,       // Write protect pin
-    DETECT: InputPin    // Card detect pin
+where
+    MCI: Mci,
+    WP: InputPin,     // Write protect pin
+    DETECT: InputPin, // Card detect pin
 {
     /// Hardware interface
     pub mci: MCI,
@@ -62,11 +75,11 @@ pub struct SdMmcCard<MCI, WP, DETECT>
     /// Card detection pin
     pub detect: DETECT,
     /// Whether a pulled high pin is logic true that a card is detected
-    pub detect_high_activated: bool
+    pub detect_high_activated: bool,
 }
 
 pub fn ocr_voltage_support() -> OcrRegister {
-    let mut ocr = OcrRegister { val: 0};
+    let mut ocr = OcrRegister { val: 0 };
     ocr.set_vdd_27_28(true)
         .set_vdd_28_29(true)
         .set_vdd_29_30(true)
@@ -76,13 +89,21 @@ pub fn ocr_voltage_support() -> OcrRegister {
     ocr
 }
 
-impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
-    where MCI: Mci,
+impl<MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
+where
+    MCI: Mci,
     WP: InputPin,
-    DETECT: InputPin
+    DETECT: InputPin,
 {
     /// Create a new SD MMC instance
-    pub fn new(mci: MCI, write_protect_pin: WP, wp_high_activated: bool, detect_pin: DETECT, detect_high_activated: bool, slot: u8) -> Self {
+    pub fn new(
+        mci: MCI,
+        write_protect_pin: WP,
+        wp_high_activated: bool,
+        detect_pin: DETECT,
+        detect_high_activated: bool,
+        slot: u8,
+    ) -> Self {
         SdMmcCard {
             mci,
             clock: 400_000,
@@ -98,7 +119,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             wp: write_protect_pin,
             wp_high_activated,
             detect: detect_pin,
-            detect_high_activated
+            detect_high_activated,
         }
     }
 
@@ -109,7 +130,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         // Timeout 1s = 400KHz / ((6+6+6+6)*8) cylces = 2100 retry
         for i in (0..2100).rev() {
             if i == 0 {
-                return Err(()) // TODO Proper error
+                return Err(()); // TODO Proper error
             }
             // CMD55 - Indicate to the card that the next command is an
             // application specific command rather than a standard command.
@@ -117,7 +138,8 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             self.mci.send_command(SDMMC_CMD55_APP_CMD.into(), 0)?;
             let mut arg = ocr_voltage_support();
             arg.val.set_bit(30, v2); // SD_ACMD41_HCS ACMD41 High Capacity Support
-            self.mci.send_command(SD_MCI_ACMD41_SD_SEND_OP_COND.into(), arg.value())?;
+            self.mci
+                .send_command(SD_MCI_ACMD41_SD_SEND_OP_COND.into(), arg.value())?;
             let resp = self.mci.get_response();
             let resp = OcrRegister { val: resp };
             if resp.card_powered_up_status() {
@@ -139,7 +161,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         grp4_no_influence: bool,
         grp5_no_influence: bool,
         grp6_no_influence: bool,
-        mode: Cmd6Mode
+        mode: Cmd6Mode,
     ) -> Result<SwitchStatusRegister, ()> {
         let mut buf = [0u8; 64];
         let mut arg = Cmd6 { val: 0 };
@@ -151,7 +173,8 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             .set_function_group6(grp6_no_influence)
             .set_mode(mode);
 
-        self.mci.adtc_start(command.into(), arg.value(), 64, 1, true)?;
+        self.mci
+            .adtc_start(command.into(), arg.value(), 64, 1, true)?;
         self.mci.read_blocks(&mut buf, 1)?;
         self.mci.wait_until_read_finished()?;
 
@@ -166,7 +189,16 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     ///
     /// True if set to high speed
     pub fn sd_cmd6_set_to_high_speed_mode(&mut self) -> Result<bool, ()> {
-        let status = self.sd_cmd6(SD_CMD6_SWITCH_FUNC, true, false, true, true, true, true, Cmd6Mode::Switch)?;
+        let status = self.sd_cmd6(
+            SD_CMD6_SWITCH_FUNC,
+            true,
+            false,
+            true,
+            true,
+            true,
+            true,
+            Cmd6Mode::Switch,
+        )?;
 
         if status.group1_info_status() == SD_SW_STATUS_FUN_GRP_RC_ERROR {
             // Not supported, not a protocol error
@@ -174,7 +206,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         }
 
         if status.group1_busy() > 0 {
-            return Err(()) // TODO proper error
+            return Err(()); // TODO proper error
         }
 
         // CMD6 function switching period is within 8 clocks after then bit of status data
@@ -193,19 +225,22 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     ///
     pub fn sd_cmd8_is_v2(&mut self) -> Result<bool, ()> {
         let mut arg = Cmd8::default();
-        arg.set_cmd8_pattern(true)
-            .set_high_voltage(true);
+        arg.set_cmd8_pattern(true).set_high_voltage(true);
 
-        if self.mci.send_command(SD_CMD8_SEND_IF_COND.into(), arg.val as u32).is_err() {
-            return Ok(false) // Not V2
+        if self
+            .mci
+            .send_command(SD_CMD8_SEND_IF_COND.into(), arg.val as u32)
+            .is_err()
+        {
+            return Ok(false); // Not V2
         }
         let ret = self.mci.get_response();
         if ret == 0xFFFF_FFFF {
             // No compliance R7 value
-            return Ok(false)
+            return Ok(false);
         }
         if ret != arg.val as u32 {
-            return Err(()) // TODO special error
+            return Err(()); // TODO special error
         }
         // Is a V2
         Ok(true)
@@ -217,7 +252,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         let arg = (self.rca as u32) << 16;
         self.mci.send_command(SDMMC_MCI_CMD9_SEND_CSD.into(), arg)?;
         self.csd = CsdRegister {
-            val: self.mci.get_response128()
+            val: self.mci.get_response128(),
         };
         Ok(())
     }
@@ -234,7 +269,8 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         if self.csd.sd_csd_structure_version() as u8 >= (SdCsdStructureVersion::Ver2_0 as u8) {
             self.capacity = (self.csd.sd_2_0_card_size() + 1) * 512;
         } else {
-            let block_nr = ((self.csd.card_size() as u32) + 1) * ((self.csd.card_size_multiplier() as u32) + 2);
+            let block_nr = ((self.csd.card_size() as u32) + 1)
+                * ((self.csd.card_size_multiplier() as u32) + 2);
             self.capacity = block_nr * (1 << self.csd.read_bl_length() as u32) / 1024;
         }
         Ok(())
@@ -242,15 +278,20 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
 
     /// CMD13: Get status register.
     /// Waits for the clear of the busy flag
-    pub fn sd_mmc_cmd13_get_status_and_wait_for_ready_for_data_flag(&mut self) -> Result<CardStatusRegister, ()> {
+    pub fn sd_mmc_cmd13_get_status_and_wait_for_ready_for_data_flag(
+        &mut self,
+    ) -> Result<CardStatusRegister, ()> {
         let mut status = CardStatusRegister::default();
         // TODO maybe proper timeout
         for i in (0..200_000u32).rev() {
             if i == 0 {
                 return Err(()); // TODO proper timeout error
             }
-            self.mci.send_command(SDMMC_MCI_CMD13_SEND_STATUS.into(), (self.rca as u32) << 16)?;
-            status = CardStatusRegister { val: self.mci.get_response() };
+            self.mci
+                .send_command(SDMMC_MCI_CMD13_SEND_STATUS.into(), (self.rca as u32) << 16)?;
+            status = CardStatusRegister {
+                val: self.mci.get_response(),
+            };
             if status.ready_for_data() {
                 break;
             }
@@ -260,7 +301,8 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
 
     /// ACMD6 = Define the data bus width to be 4 bits
     pub fn sd_acmd6_set_data_bus_width_to_4_bits(&mut self) -> Result<(), ()> {
-        self.mci.send_command(SDMMC_CMD55_APP_CMD.into(), (self.rca as u32) << 16)?;
+        self.mci
+            .send_command(SDMMC_CMD55_APP_CMD.into(), (self.rca as u32) << 16)?;
         self.mci.send_command(SD_ACMD6_SET_BUS_WIDTH.into(), 0x2)?;
         self.bus_width = BusWidth::_4BIT;
         Ok(())
@@ -269,8 +311,10 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     /// Get the SD Card configuration register (ACMD51)
     pub fn sd_scr(&mut self) -> Result<ScrRegister, ()> {
         let mut buf = [0u8; 8];
-        self.mci.send_command(SDMMC_CMD55_APP_CMD.into(), (self.rca as u32) << 16)?;
-        self.mci.adtc_start(SD_ACMD51_SEND_SCR.into(), 0, 8, 1, true)?;
+        self.mci
+            .send_command(SDMMC_CMD55_APP_CMD.into(), (self.rca as u32) << 16)?;
+        self.mci
+            .adtc_start(SD_ACMD51_SEND_SCR.into(), 0, 8, 1, true)?;
         self.mci.read_blocks(&mut buf, 1)?;
         self.mci.wait_until_read_finished()?;
 
@@ -287,7 +331,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             SdPhysicalSpecification::Revision1d01 => SdCard(SdCardVersion::Sd1d0),
             SdPhysicalSpecification::Revision1d10 => SdCard(SdCardVersion::Sd1d10),
             SdPhysicalSpecification::Revision2d00 => SdCard(SdCardVersion::Sd2d0),
-            _ => SdCard(SdCardVersion::Sd1d0)
+            _ => SdCard(SdCardVersion::Sd1d0),
         };
         Ok(())
     }
@@ -297,13 +341,16 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     }
 
     pub fn sd_select_this_device_on_mci_and_configure_mci(&mut self) -> Result<(), ()> {
-        self.mci.select_device(self.slot, self.clock, &self.bus_width, self.high_speed) // TODO proper error
+        self.mci
+            .select_device(self.slot, self.clock, &self.bus_width, self.high_speed)
+        // TODO proper error
     }
 
     /// Select this instance's card slot and initialize the associated driver
     pub fn sd_mmc_select_slot(&mut self) -> Result<(), ()> {
         // Check card detection
-        if self.wp.is_high().map_err(|_| ())? != self.wp_high_activated {   // TODO proper error for pin check
+        if self.wp.is_high().map_err(|_| ())? != self.wp_high_activated {
+            // TODO proper error for pin check
             if self.state == CardState::Debounce {
                 // TODO Timeout stop?
             }
@@ -314,7 +361,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         if self.state == CardState::Debounce {
             if false {
                 // TODO check if timed out
-                return Err(()) // TODO proper timeout
+                return Err(()); // TODO proper timeout
             }
             self.state = CardState::Init;
             // Set 1-bit bus width and low clock for initialization
@@ -323,10 +370,14 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
             self.high_speed = false;
         }
         if self.state == CardState::Unusable {
-            return Err(())  // TODO proper error
+            return Err(()); // TODO proper error
         }
         self.sd_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
-        if self.state == CardState::Init { Ok(())} else { Ok(()) }  // TODO if it is still ongoing should return ongoing
+        if self.state == CardState::Init {
+            Ok(())
+        } else {
+            Ok(())
+        } // TODO if it is still ongoing should return ongoing
     }
 
     pub fn write_protected(&self) -> Result<bool, ()> {
@@ -334,23 +385,41 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         Ok(level == self.wp_high_activated)
     }
 
-    pub fn sd_mmc_init_read_blocks(&mut self, start: u32, blocks_amount: u16) -> Result<TransferTransaction, ()> {
+    pub fn sd_mmc_init_read_blocks(
+        &mut self,
+        start: u32,
+        blocks_amount: u16,
+    ) -> Result<TransferTransaction, ()> {
         self.sd_select_this_device_on_mci_and_configure_mci()?;
         // Wait for data status
         self.sd_mmc_cmd13_get_status_and_wait_for_ready_for_data_flag()?;
-        let cmd: u32 = if blocks_amount > 1 { SDMMC_CMD18_READ_MULTIPLE_BLOCK.into() } else { SDMMC_CMD17_READ_SINGLE_BLOCK.into() };
+        let cmd: u32 = if blocks_amount > 1 {
+            SDMMC_CMD18_READ_MULTIPLE_BLOCK.into()
+        } else {
+            SDMMC_CMD17_READ_SINGLE_BLOCK.into()
+        };
 
         // SDSC Card (CCS=0) uses byte unit address,
         // SDHC and SDXC Cards (CCS=1) use block unit address (512 Bytes unit).
-        let arg = if self.card_type.high_capacity() { start } else { start * SD_MMC_BLOCK_SIZE };
-        self.mci.adtc_start(cmd, arg, SD_MMC_BLOCK_SIZE as u16, blocks_amount, true)?;
+        let arg = if self.card_type.high_capacity() {
+            start
+        } else {
+            start * SD_MMC_BLOCK_SIZE
+        };
+        self.mci
+            .adtc_start(cmd, arg, SD_MMC_BLOCK_SIZE as u16, blocks_amount, true)?;
         Ok(TransferTransaction {
             amount: blocks_amount,
-            remaining: blocks_amount
+            remaining: blocks_amount,
         })
     }
 
-    pub fn sd_mmc_start_read_blocks(&mut self, transaction: &mut TransferTransaction, destination: &mut [u8], amount_of_blocks: u16) -> Result<(), ()> {
+    pub fn sd_mmc_start_read_blocks(
+        &mut self,
+        transaction: &mut TransferTransaction,
+        destination: &mut [u8],
+        amount_of_blocks: u16,
+    ) -> Result<(), ()> {
         if self.mci.read_blocks(destination, amount_of_blocks).is_err() {
             transaction.remaining = 0;
             return Err(()); // TODO proper read error
@@ -359,54 +428,83 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         Ok(())
     }
 
-    pub fn sd_mmc_wait_end_of_read_blocks(&mut self, abort: bool, transaction: &mut TransferTransaction) -> Result<(), ()> {
+    pub fn sd_mmc_wait_end_of_read_blocks(
+        &mut self,
+        abort: bool,
+        transaction: &mut TransferTransaction,
+    ) -> Result<(), ()> {
         self.mci.wait_until_read_finished()?;
         if abort {
             transaction.remaining = 0;
         } else if transaction.remaining > 0 {
-            return Ok(())
+            return Ok(());
         }
 
         // All blocks are transferred then stop read operation
         if transaction.remaining == 1 {
-            return Ok(())
+            return Ok(());
         }
 
         // WORKAROUND for no compliance card (Atmel Internal ref. !MMC7 !SD19)
         // The errors on this cmmand must be ignored and one retry can be necessary in SPI mode
         // for non-complying card
-        if self.mci.adtc_stop(SDMMC_CMD12_STOP_TRANSMISSION.into(), 0).is_err() {
-            self.mci.adtc_stop(SDMMC_CMD12_STOP_TRANSMISSION.into(), 0)?; // TODO proper error
+        if self
+            .mci
+            .adtc_stop(SDMMC_CMD12_STOP_TRANSMISSION.into(), 0)
+            .is_err()
+        {
+            self.mci
+                .adtc_stop(SDMMC_CMD12_STOP_TRANSMISSION.into(), 0)?; // TODO proper error
         }
         Ok(())
     }
 
-    pub fn sd_mmc_init_write_blocks(&mut self, start: u32, blocks_amount: u16) -> Result<TransferTransaction, ()> {
+    pub fn sd_mmc_init_write_blocks(
+        &mut self,
+        start: u32,
+        blocks_amount: u16,
+    ) -> Result<TransferTransaction, ()> {
         self.sd_select_this_device_on_mci_and_configure_mci()?;
         if self.write_protected()? {
-            return Err(()) // TODO proper write protection error
+            return Err(()); // TODO proper write protection error
         }
 
-        let cmd: u32 = if blocks_amount > 1 { SDMMC_CMD25_WRITE_MULTIPLE_BLOCK.into() } else { SDMMC_CMD24_WRITE_BLOCK.into() };
+        let cmd: u32 = if blocks_amount > 1 {
+            SDMMC_CMD25_WRITE_MULTIPLE_BLOCK.into()
+        } else {
+            SDMMC_CMD24_WRITE_BLOCK.into()
+        };
 
         // SDSC Card (CCS=0) uses byte unit address,
         // SDHC and SDXC Cards (CCS=1) use block unit address (512 Bytes unit).
-        let arg = if self.card_type.high_capacity() { start } else { start * SD_MMC_BLOCK_SIZE };
+        let arg = if self.card_type.high_capacity() {
+            start
+        } else {
+            start * SD_MMC_BLOCK_SIZE
+        };
 
-        self.mci.adtc_start(cmd, arg, SD_MMC_BLOCK_SIZE as u16, blocks_amount, true)?; // TODO proper error
+        self.mci
+            .adtc_start(cmd, arg, SD_MMC_BLOCK_SIZE as u16, blocks_amount, true)?; // TODO proper error
 
-        let resp = CardStatusRegister { val: self.mci.get_response() };
+        let resp = CardStatusRegister {
+            val: self.mci.get_response(),
+        };
         if resp.write_protect_violation() {
-            return Err(()) // TODO proper error
+            return Err(()); // TODO proper error
         }
 
         Ok(TransferTransaction {
             remaining: blocks_amount,
-            amount: blocks_amount
+            amount: blocks_amount,
         })
     }
 
-    pub fn sd_mmc_start_write_blocks(&mut self, transaction: &mut TransferTransaction, data: &[u8], blocks_amount: u16) -> Result<(), ()> {
+    pub fn sd_mmc_start_write_blocks(
+        &mut self,
+        transaction: &mut TransferTransaction,
+        data: &[u8],
+        blocks_amount: u16,
+    ) -> Result<(), ()> {
         if self.mci.write_blocks(data, blocks_amount).is_err() {
             transaction.remaining = 0;
             return Err(()); // TODO proper error
@@ -415,12 +513,16 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         Ok(())
     }
 
-    pub fn sd_mmc_wait_end_of_write_blocks(&mut self, abort: bool, transaction: &mut TransferTransaction) -> Result<(), ()> {
+    pub fn sd_mmc_wait_end_of_write_blocks(
+        &mut self,
+        abort: bool,
+        transaction: &mut TransferTransaction,
+    ) -> Result<(), ()> {
         self.mci.wait_until_write_finished()?; // TODO proper error
         if abort {
             transaction.remaining = 0;
         } else if transaction.remaining > 0 {
-            return Ok(());  // TODO proper return?
+            return Ok(()); // TODO proper return?
         }
 
         // All blocks are transferred then stop write operation
@@ -430,7 +532,8 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
         }
 
         // Note SPI multi-block writes terminate using a special token, not a STOP_TRANSMISSION request
-        self.mci.adtc_stop(SDMMC_CMD12_STOP_TRANSMISSION.into(), 0)?; // TODO proper error
+        self.mci
+            .adtc_stop(SDMMC_CMD12_STOP_TRANSMISSION.into(), 0)?; // TODO proper error
         Ok(())
     }
 }

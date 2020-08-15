@@ -1,6 +1,6 @@
-use core::hint::unreachable_unchecked;
-use bit_field::BitField;
 use crate::sd_mmc::registers::registers::Register;
+use bit_field::BitField;
+use core::hint::unreachable_unchecked;
 
 pub enum SdioInterfaceFunctionCode {
     /// No SDIO standard interface
@@ -22,7 +22,7 @@ pub enum SdioInterfaceFunctionCode {
     /// Embedded Sdio ATA
     EmbeddedSdioAta = 0x8,
     /// Check EXT interface code
-    CheckExt = 0xF
+    CheckExt = 0xF,
 }
 
 impl From<u8> for SdioInterfaceFunctionCode {
@@ -38,13 +38,13 @@ impl From<u8> for SdioInterfaceFunctionCode {
             0x7 => SdioInterfaceFunctionCode::Wlan,
             0x8 => SdioInterfaceFunctionCode::EmbeddedSdioAta,
             0xF => SdioInterfaceFunctionCode::CheckExt,
-            _ => unsafe { unreachable_unchecked() }
+            _ => unsafe { unreachable_unchecked() },
         }
     }
 }
 
 pub struct CsaAndInterfaceCodeRegister {
-    pub val: u8
+    pub val: u8,
 }
 
 impl CsaAndInterfaceCodeRegister {

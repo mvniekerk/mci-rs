@@ -5,5 +5,5 @@ pub enum SdMmcError {
     Slot = 4,
     Communication = 5,
     IllegalParameter = 6,
-    WriteProtected = 7
+    WriteProtected = 7,
 }

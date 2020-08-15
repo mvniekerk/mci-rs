@@ -4,7 +4,7 @@ pub enum SdioR5StateValue {
     Disabled = 0,
     CmdDatLinesFree = 1,
     Transfer = 2,
-    Reserved = 3
+    Reserved = 3,
 }
 
 impl From<SdioR5StateValue> for u16 {
@@ -19,13 +19,13 @@ impl From<u16> for SdioR5StateValue {
             0 => SdioR5StateValue::Disabled,
             1 => SdioR5StateValue::CmdDatLinesFree,
             2 => SdioR5StateValue::Transfer,
-            _ => SdioR5StateValue::Reserved
+            _ => SdioR5StateValue::Reserved,
         }
     }
 }
 
 pub struct SdioR5State {
-    pub val: u16
+    pub val: u16,
 }
 
 impl From<SdioR5State> for u16 {
@@ -85,7 +85,7 @@ impl SdioR5State {
 }
 
 pub struct SdioR6State {
-    pub val: u16
+    pub val: u16,
 }
 
 impl SdioR6State {

@@ -23,7 +23,7 @@ pub enum MmcVersion {
     // MMC version 3
     SdMmc3d0 = 0x30,
     // MMC version 4
-    Mmc4d0 = 0x40
+    Mmc4d0 = 0x40,
 }
 
 impl Into<Option<MmcVersion>> for SdCardVersion {
@@ -41,7 +41,7 @@ pub enum CardVersion {
     // Unknown card version
     Unknown,
     SdCard(SdCardVersion),
-    Mmc(MmcVersion)
+    Mmc(MmcVersion),
 }
 
 impl From<CardVersion> for usize {
@@ -49,7 +49,7 @@ impl From<CardVersion> for usize {
         match val {
             CardVersion::Unknown => 0,
             CardVersion::SdCard(sdcard) => sdcard as usize,
-            CardVersion::Mmc(mmc) => mmc as usize
+            CardVersion::Mmc(mmc) => mmc as usize,
         }
     }
 }
@@ -66,7 +66,7 @@ impl From<u8> for CardVersion {
             0x22 => CardVersion::Mmc(MmcVersion::Mmc2d2),
             0x30 => CardVersion::SdCard(SdCardVersion::SdMmc3d0),
             0x40 => CardVersion::Mmc(MmcVersion::Mmc4d0),
-            _ => unsafe { unreachable_unchecked() }
+            _ => unsafe { unreachable_unchecked() },
         }
     }
 }

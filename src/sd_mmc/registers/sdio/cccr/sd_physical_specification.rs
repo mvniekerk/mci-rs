@@ -1,9 +1,9 @@
-use bit_field::BitField;
 use crate::sd_mmc::registers::registers::Register;
 use crate::sd_mmc::sd::sd_physical_specification::SdPhysicalSpecification;
+use bit_field::BitField;
 
 pub struct SdPhysicalSpecificationRegister {
-    pub val: u8
+    pub val: u8,
 }
 
 impl Register<u8> for SdPhysicalSpecificationRegister {

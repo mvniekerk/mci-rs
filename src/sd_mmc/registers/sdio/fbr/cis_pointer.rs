@@ -3,7 +3,7 @@ use bit_field::BitField;
 
 /// Address pointer to function CIS (3 bytes, LSB first
 pub struct CisPointerRegister {
-    pub val: u32
+    pub val: u32,
 }
 
 impl CisPointerRegister {

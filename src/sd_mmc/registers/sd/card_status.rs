@@ -1,6 +1,6 @@
-use core::hint::unreachable_unchecked;
 use crate::sd_mmc::registers::registers::Register;
 use bit_field::BitField;
+use core::hint::unreachable_unchecked;
 
 pub enum CardStatusState {
     Idle = 0,
@@ -11,7 +11,7 @@ pub enum CardStatusState {
     Data = 5,
     Receiving = 6,
     Programming = 7,
-    Disabled = 8
+    Disabled = 8,
 }
 
 impl From<u32> for CardStatusState {
@@ -25,14 +25,14 @@ impl From<u32> for CardStatusState {
             6 => CardStatusState::Data,
             7 => CardStatusState::Programming,
             8 => CardStatusState::Disabled,
-            _ => unsafe { unreachable_unchecked() }
+            _ => unsafe { unreachable_unchecked() },
         }
     }
 }
 
 #[derive(Default)]
 pub struct CardStatusRegister {
-    pub val: u32
+    pub val: u32,
 }
 
 impl Register<u32> for CardStatusRegister {

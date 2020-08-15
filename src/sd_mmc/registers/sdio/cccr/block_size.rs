@@ -3,7 +3,7 @@ use bit_field::BitField;
 
 /// FN0 block size, LSB first
 pub struct BlockSize {
-    pub val: u16
+    pub val: u16,
 }
 
 impl BlockSize {

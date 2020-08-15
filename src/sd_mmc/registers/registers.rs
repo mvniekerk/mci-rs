@@ -7,5 +7,3 @@ pub trait SdMmcRegister<T> {
     fn value(&self) -> T;
     fn address() -> u32;
 }
-
-

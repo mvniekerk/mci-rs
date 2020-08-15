@@ -3,7 +3,7 @@ use atsamd_hal::hal::digital::v2::InputPin;
 /// A dummy input pin that.
 /// Can be used when a write protect or detection pin is not available for the peripheral
 pub struct DummyInputPin {
-    pub high: bool
+    pub high: bool,
 }
 
 impl DummyInputPin {

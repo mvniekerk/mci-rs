@@ -6,7 +6,7 @@ pub enum SdPhysicalSpecification {
     /// SD 2.00 (May 2006)
     Revision2d00 = 2,
     /// SD 3.00
-    Revision3d00 = 3
+    Revision3d00 = 3,
 }
 
 impl From<u8> for SdPhysicalSpecification {
@@ -16,7 +16,7 @@ impl From<u8> for SdPhysicalSpecification {
             1 => SdPhysicalSpecification::Revision1d10,
             2 => SdPhysicalSpecification::Revision2d00,
             3 => SdPhysicalSpecification::Revision3d00,
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }

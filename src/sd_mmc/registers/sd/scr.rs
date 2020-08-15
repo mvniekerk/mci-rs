@@ -1,12 +1,12 @@
 use crate::sd_mmc::registers::registers::Register;
-use bit_field::BitField;
-use core::hint::unreachable_unchecked;
+use crate::sd_mmc::sd::sd_bus_width::SdBusWidth;
 use crate::sd_mmc::sd::sd_physical_specification::SdPhysicalSpecification;
 use crate::sd_mmc::sd::sd_security::SdSecurity;
-use crate::sd_mmc::sd::sd_bus_width::SdBusWidth;
+use bit_field::BitField;
+use core::hint::unreachable_unchecked;
 
 pub struct ScrRegister {
-    pub val: u64
+    pub val: u64,
 }
 
 impl Register<u64> for ScrRegister {
@@ -22,27 +22,27 @@ impl Register<u64> for ScrRegister {
 impl From<[u8; 8]> for ScrRegister {
     fn from(val: [u8; 8]) -> Self {
         ScrRegister {
-            val: (val[0] as u64) +
-                ((val[1] as u64) << 8) +
-                ((val[2] as u64) << 16) +
-                ((val[3] as u64) << 24) +
-                ((val[4] as u64) << 32) +
-                ((val[5] as u64) << 40) +
-                ((val[6] as u64) << 48) +
-                ((val[7] as u64) << 56)
+            val: (val[0] as u64)
+                + ((val[1] as u64) << 8)
+                + ((val[2] as u64) << 16)
+                + ((val[3] as u64) << 24)
+                + ((val[4] as u64) << 32)
+                + ((val[5] as u64) << 40)
+                + ((val[6] as u64) << 48)
+                + ((val[7] as u64) << 56),
         }
     }
 }
 
 pub enum ScrRegisterStructureVersion {
-    Version1_0 = 0
+    Version1_0 = 0,
 }
 
 impl From<u64> for ScrRegisterStructureVersion {
     fn from(val: u64) -> Self {
         match val {
             0 => ScrRegisterStructureVersion::Version1_0,
-            _ => unsafe { unreachable_unchecked() }
+            _ => unsafe { unreachable_unchecked() },
         }
     }
 }

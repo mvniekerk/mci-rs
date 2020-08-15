@@ -1,17 +1,17 @@
-use bit_field::BitField;
 use crate::sd_mmc::mode_index::ModeIndex;
+use bit_field::BitField;
 use core::hint::unreachable_unchecked;
 
 #[derive(Default)]
 pub struct Cmd6 {
-    pub val: u32
+    pub val: u32,
 }
 
 pub enum Access {
     CommandSet = 0,
     SetBits = 1,
     ClearBits = 2,
-    WriteByte = 3
+    WriteByte = 3,
 }
 
 impl From<u32> for Access {
@@ -21,7 +21,7 @@ impl From<u32> for Access {
             1 => Access::SetBits,
             2 => Access::ClearBits,
             3 => Access::WriteByte,
-            _ => Access::CommandSet
+            _ => Access::CommandSet,
         }
     }
 }
@@ -30,7 +30,7 @@ impl From<u32> for Access {
 pub enum BusWidth {
     _1BIT = 0,
     _4BIT = 1,
-    _8BIT = 2
+    _8BIT = 2,
 }
 
 impl From<u32> for BusWidth {
@@ -39,7 +39,7 @@ impl From<u32> for BusWidth {
             0 => BusWidth::_1BIT,
             1 => BusWidth::_4BIT,
             2 => BusWidth::_8BIT,
-            _ => unsafe { unreachable_unchecked() }
+            _ => unsafe { unreachable_unchecked() },
         }
     }
 }
@@ -49,7 +49,7 @@ impl From<&BusWidth> for u32 {
         match val {
             BusWidth::_1BIT => 0,
             BusWidth::_4BIT => 1,
-            BusWidth::_8BIT => 2
+            BusWidth::_8BIT => 2,
         }
     }
 }

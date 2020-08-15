@@ -1,8 +1,8 @@
-use bit_field::BitField;
 use crate::sd_mmc::registers::registers::Register;
+use bit_field::BitField;
 
 pub struct PowerControlRegister {
-    pub val: u8
+    pub val: u8,
 }
 
 impl PowerControlRegister {

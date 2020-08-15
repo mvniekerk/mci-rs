@@ -5,7 +5,7 @@ pub enum SdSecurity {
     NotUsed = 1,
     _1_01 = 2,
     _2_00 = 3,
-    _3_00 = 4
+    _3_00 = 4,
 }
 
 impl From<u8> for SdSecurity {
@@ -16,7 +16,7 @@ impl From<u8> for SdSecurity {
             2 => SdSecurity::_1_01,
             3 => SdSecurity::_2_00,
             4 => SdSecurity::_3_00,
-            _ => unsafe { unreachable_unchecked() }
+            _ => unsafe { unreachable_unchecked() },
         }
     }
 }

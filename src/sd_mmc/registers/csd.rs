@@ -3,11 +3,11 @@ use bit_field::BitArray;
 
 #[derive(Default)]
 pub struct CsdRegister {
-    pub val: [u32; 4]
+    pub val: [u32; 4],
 }
 
 impl Register<[u32; 4]> for CsdRegister {
-    fn value(&self) -> [u32;4] {
+    fn value(&self) -> [u32; 4] {
         self.val
     }
 
@@ -22,9 +22,7 @@ impl From<[u8; 32]> for CsdRegister {
         for i in 0..32 {
             v[i / 4] |= (val[i] as u32) << ((i % 4) * 8);
         }
-        CsdRegister {
-            val: v
-        }
+        CsdRegister { val: v }
     }
 }
 
@@ -33,7 +31,7 @@ pub enum MmcCsdStructureVersion {
     Unknown = -1,
     Ver1_0 = 0,
     Ver1_1 = 1,
-    Ver1_2 = 2
+    Ver1_2 = 2,
 }
 
 #[cfg(feature = "mmc")]
@@ -43,7 +41,7 @@ impl From<u8> for MmcCsdStructureVersion {
             0 => MmcCsdStructureVersion::Ver1_0,
             1 => MmcCsdStructureVersion::Ver1_1,
             2 => MmcCsdStructureVersion::Ver1_2,
-            _ => MmcCsdStructureVersion::Unknown
+            _ => MmcCsdStructureVersion::Unknown,
         }
     }
 }
@@ -51,7 +49,7 @@ impl From<u8> for MmcCsdStructureVersion {
 pub enum SdCsdStructureVersion {
     Unknown = -1,
     Ver1_0 = 0,
-    Ver2_0 = 1
+    Ver2_0 = 1,
 }
 
 impl From<u8> for SdCsdStructureVersion {
@@ -59,7 +57,7 @@ impl From<u8> for SdCsdStructureVersion {
         match val {
             0 => SdCsdStructureVersion::Ver1_0,
             1 => SdCsdStructureVersion::Ver2_0,
-            _ => SdCsdStructureVersion::Unknown
+            _ => SdCsdStructureVersion::Unknown,
         }
     }
 }
@@ -131,5 +129,4 @@ impl CsdRegister {
     pub fn card_size_multiplier(&self) -> u8 {
         self.val.get_bits(47..50) as u8
     }
-
 }

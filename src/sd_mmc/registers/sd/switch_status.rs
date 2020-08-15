@@ -4,11 +4,11 @@ use bit_field::BitArray;
 pub const SD_SW_STATUS_FUN_GRP_RC_ERROR: u16 = 0xF;
 
 pub struct SwitchStatusRegister {
-    pub val: [u16; 32]
+    pub val: [u16; 32],
 }
 
 impl Register<[u16; 32]> for SwitchStatusRegister {
-    fn value(&self) -> [u16;32] {
+    fn value(&self) -> [u16; 32] {
         self.val
     }
 
@@ -23,9 +23,7 @@ impl From<[u8; 64]> for SwitchStatusRegister {
         for i in 0..64 {
             v[i / 2] |= (val[i] as u16) << ((i % 2) * 8);
         }
-        SwitchStatusRegister {
-            val: v
-        }
+        SwitchStatusRegister { val: v }
     }
 }
 
@@ -182,5 +180,3 @@ impl SwitchStatusRegister {
         self.val.get_bits(272..288) as u16
     }
 }
-
-

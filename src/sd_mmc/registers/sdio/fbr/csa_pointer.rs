@@ -1,9 +1,9 @@
-use bit_field::BitField;
 use crate::sd_mmc::registers::registers::Register;
+use bit_field::BitField;
 
 /// Address pointer to CSA, 3 bytes, LSB first
 pub struct CsaPointerRegister {
-    pub val: u32
+    pub val: u32,
 }
 
 impl CsaPointerRegister {

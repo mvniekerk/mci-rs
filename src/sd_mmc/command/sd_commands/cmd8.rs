@@ -2,7 +2,7 @@ use bit_field::BitField;
 
 #[derive(Default)]
 pub struct Cmd8 {
-    pub val: u16
+    pub val: u16,
 }
 
 impl Cmd8 {
@@ -16,7 +16,8 @@ impl Cmd8 {
     }
 
     pub fn set_high_voltage(&mut self, high_voltage: bool) -> &mut Self {
-        self.val.set_bits(8..12, if high_voltage { 0x1 } else { 0x0 });
+        self.val
+            .set_bits(8..12, if high_voltage { 0x1 } else { 0x0 });
         self
     }
 
