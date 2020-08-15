@@ -297,7 +297,7 @@ where
         function: FunctionSelection,
         address: u32,
     ) -> Result<u8, ()> {
-        self.sd_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
+        self.sd_mmc_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
         self.sdio_cmd52(Direction::Read, function, address, false, 0)
     }
 
@@ -307,7 +307,7 @@ where
         address: u32,
         data: u8,
     ) -> Result<(), ()> {
-        self.sd_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
+        self.sd_mmc_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
         self.sdio_cmd52(Direction::Write, function, address, false, data)
             .map(|_| ()) // TODO proper error
     }
@@ -320,7 +320,7 @@ where
         destination: &mut [u8],
         size: u16,
     ) -> Result<(), ()> {
-        self.sd_select_this_device_on_mci_and_configure_mci()?;
+        self.sd_mmc_select_this_device_on_mci_and_configure_mci()?;
         self.sdio_cmd53_io_rw_extended(
             Direction::Read,
             function,
@@ -341,7 +341,7 @@ where
         source: &[u8],
         size: u16,
     ) -> Result<(), ()> {
-        self.sd_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
+        self.sd_mmc_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
         self.sdio_cmd53_io_rw_extended(
             Direction::Write,
             function,

@@ -123,7 +123,7 @@ where
         }
     }
 
-    /// Ask to all cards to send their operations conditions (MCI only).
+    /// Ask all cards to send their operations conditions (MCI only).
     /// # Arguments
     /// * `v2` Shall be true if it is a SD card V2
     pub fn sd_mci_operations_conditions(&mut self, v2: bool) -> Result<(), ()> {
@@ -324,7 +324,7 @@ where
         self.mci.deselect_device(self.slot)
     }
 
-    pub fn sd_select_this_device_on_mci_and_configure_mci(&mut self) -> Result<(), ()> {
+    pub fn sd_mmc_select_this_device_on_mci_and_configure_mci(&mut self) -> Result<(), ()> {
         self.mci
             .select_device(self.slot, self.clock, &self.bus_width, self.high_speed)
         // TODO proper error
@@ -356,7 +356,7 @@ where
         if self.state == CardState::Unusable {
             return Err(()); // TODO proper error
         }
-        self.sd_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
+        self.sd_mmc_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
         if self.state == CardState::Init {
             Ok(())
         } else {
@@ -374,7 +374,7 @@ where
         start: u32,
         blocks_amount: u16,
     ) -> Result<TransferTransaction, ()> {
-        self.sd_select_this_device_on_mci_and_configure_mci()?;
+        self.sd_mmc_select_this_device_on_mci_and_configure_mci()?;
         // Wait for data status
         self.sd_mmc_cmd13_get_status_and_wait_for_ready_for_data_flag()?;
         let cmd: u32 = if blocks_amount > 1 {
@@ -448,7 +448,7 @@ where
         start: u32,
         blocks_amount: u16,
     ) -> Result<TransferTransaction, ()> {
-        self.sd_select_this_device_on_mci_and_configure_mci()?;
+        self.sd_mmc_select_this_device_on_mci_and_configure_mci()?;
         if self.write_protected()? {
             return Err(()); // TODO proper write protection error
         }

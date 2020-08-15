@@ -196,15 +196,15 @@ where
                 // Enable more bus width
                 let bus_width = self.bus_width;
                 self.mmc_cmd6_set_bus_width(&bus_width)?; // TODO proper error
-                self.sd_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
+                self.sd_mmc_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
             }
             if self.mci.is_high_speed_capable()? && authorize_high_speed {
                 // TODO proper error
                 self.mmc_cmd6_set_high_speed()?; // TODO proper error
-                self.sd_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
+                self.sd_mmc_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
             }
         } else {
-            self.sd_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
+            self.sd_mmc_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
         }
         for _ in 0..10 {
             // Retry is a workaround for no compliance card (Atmel Internal ref. MMC19)
