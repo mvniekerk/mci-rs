@@ -1,21 +1,17 @@
 use crate::card_state::CardState;
 use crate::card_type::CardType;
-use crate::card_version::CardVersion::SdCard;
-use crate::card_version::{CardVersion, SdCardVersion};
+use crate::card_version::CardVersion;
 use crate::command::mmc_commands::BusWidth;
 use crate::commands::{
     SDMMC_CMD12_STOP_TRANSMISSION, SDMMC_CMD17_READ_SINGLE_BLOCK,
     SDMMC_CMD18_READ_MULTIPLE_BLOCK, SDMMC_CMD24_WRITE_BLOCK, SDMMC_CMD25_WRITE_MULTIPLE_BLOCK,
-    SDMMC_CMD55_APP_CMD, SDMMC_MCI_CMD13_SEND_STATUS, SDMMC_MCI_CMD9_SEND_CSD, SD_ACMD51_SEND_SCR,
-    SD_ACMD6_SET_BUS_WIDTH
+    SDMMC_MCI_CMD13_SEND_STATUS, SDMMC_MCI_CMD9_SEND_CSD
 };
 use crate::mci::Mci;
 use crate::mmc::SD_MMC_BLOCK_SIZE;
-use crate::registers::csd::{CsdRegister, SdCsdStructureVersion};
+use crate::registers::csd::CsdRegister;
 use crate::registers::ocr::OcrRegister;
 use crate::registers::sd::card_status::CardStatusRegister;
-use crate::registers::sd::scr::ScrRegister;
-use crate::sd::sd_physical_specification::SdPhysicalSpecification;
 use crate::transfer::TransferTransaction;
 use embedded_hal::digital::v2::InputPin;
 
@@ -124,25 +120,6 @@ where
         Ok(())
     }
 
-    /// Decodes the SD CSD register
-    /// updates self.clock, self.capacity
-    pub fn sd_decode_csd(&mut self) -> Result<(), ()> {
-        // 	Get SD memory maximum transfer speed in Hz.
-        let trans_speed = self.csd.transmission_speed();
-        let unit = SD_MMC_TRANS_UNITS[(trans_speed & 0x7) as usize];
-        let mult = SD_TRANS_MULTIPLIERS[((trans_speed >> 3) & 0xF) as usize];
-        self.clock = unit * mult * 1000;
-
-        if self.csd.sd_csd_structure_version() as u8 >= (SdCsdStructureVersion::Ver2d0 as u8) {
-            self.capacity = (self.csd.sd_2_0_card_size() + 1) * 512;
-        } else {
-            let block_nr = ((self.csd.card_size() as u32) + 1)
-                * ((self.csd.card_size_multiplier() as u32) + 2);
-            self.capacity = block_nr * (1 << self.csd.read_bl_length() as u32) / 1024;
-        }
-        Ok(())
-    }
-
     /// CMD13: Get status register.
     /// Waits for the clear of the busy flag
     pub fn sd_mmc_cmd13_get_status_and_wait_for_ready_for_data_flag(
@@ -164,43 +141,6 @@ where
             }
         }
         Ok(status)
-    }
-
-    /// ACMD6 = Define the data bus width to be 4 bits
-    pub fn sd_acmd6_set_data_bus_width_to_4_bits(&mut self) -> Result<(), ()> {
-        self.mci
-            .send_command(SDMMC_CMD55_APP_CMD.into(), (self.rca as u32) << 16)?;
-        self.mci.send_command(SD_ACMD6_SET_BUS_WIDTH.into(), 0x2)?;
-        self.bus_width = BusWidth::_4BIT;
-        Ok(())
-    }
-
-    /// Get the SD Card configuration register (ACMD51)
-    pub fn sd_scr(&mut self) -> Result<ScrRegister, ()> {
-        let mut buf = [0u8; 8];
-        self.mci
-            .send_command(SDMMC_CMD55_APP_CMD.into(), (self.rca as u32) << 16)?;
-        self.mci
-            .adtc_start(SD_ACMD51_SEND_SCR.into(), 0, 8, 1, true)?;
-        self.mci.read_blocks(&mut buf, 1)?;
-        self.mci.wait_until_read_finished()?;
-
-        Ok(buf.into())
-    }
-
-    /// ACMD51 - Read the SD Card configuration register (SCR)
-    /// SCR provides information on the SD Memory Card's special features that were configured
-    /// into the given card. The SCR register is 64 bits.
-    /// Updates self.version
-    pub fn sd_acmd51(&mut self) -> Result<(), ()> {
-        let scr = self.sd_scr()?;
-        self.version = match scr.sd_specification_version() {
-            SdPhysicalSpecification::Revision1d01 => SdCard(SdCardVersion::Sd1d0),
-            SdPhysicalSpecification::Revision1d10 => SdCard(SdCardVersion::Sd1d10),
-            SdPhysicalSpecification::Revision2d00 => SdCard(SdCardVersion::Sd2d0),
-            _ => SdCard(SdCardVersion::Sd1d0),
-        };
-        Ok(())
     }
 
     pub fn sd_mmc_deselect_this_device(&mut self) -> Result<(), ()> {
