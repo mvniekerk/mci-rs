@@ -1,5 +1,6 @@
 [workspace]
 
 members = [
-    "mci"
+    "mci",
+    "mci-atsamd51"
 ]
