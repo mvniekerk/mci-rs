@@ -251,6 +251,7 @@ impl <MCI, WP, DETECT> SdMmcCard<MCI, WP, DETECT>
     pub fn sdio_write_extended(&mut self, function: FunctionSelection, address: u16, increment_address: bool, source: &[u8], size: u16) -> Result<(), ()> {
         self.sd_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
         self.sdio_cmd53_io_rw_extended(Direction::Write, function, address, increment_address, size, true)?; // TODO proper error
+        self.mci.write_blocks(source, 1);
         self.mci.wait_until_write_finished() // TODO proper error
     }
 }
