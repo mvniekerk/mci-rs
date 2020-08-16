@@ -1,4 +1,3 @@
-use crate::registers::register_address::RegisterAddress;
 use bit_field::BitField;
 
 pub struct Cmd52 {
@@ -70,11 +69,5 @@ impl Cmd52 {
 
     pub fn direction(&self) -> Direction {
         self.val.get_bit(31).into()
-    }
-}
-
-impl RegisterAddress for Cmd52 {
-    fn address() -> u8 {
-        unimplemented!()
     }
 }

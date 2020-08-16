@@ -1,4 +1,3 @@
-use crate::registers::register_address::RegisterAddress;
 use bit_field::BitField;
 
 pub struct Cmd6 {
@@ -24,12 +23,6 @@ impl From<bool> for Cmd6Mode {
         } else {
             Cmd6Mode::Check
         }
-    }
-}
-
-impl RegisterAddress for Cmd6 {
-    fn address() -> u8 {
-        6
     }
 }
 

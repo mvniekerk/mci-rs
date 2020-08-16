@@ -2,8 +2,7 @@
 
 ## Description
 MultiMedia Card Interface. MCI supports SD, MMC and SDIO cards.
-
-This crate implements the SDIO, MMC and SD protocols.
+This crate implements the SDIO, MMC and SD protocols. Done in no-std so aimed towards embedded use.
 
 ## Where to start
 
@@ -18,9 +17,9 @@ pub fn mci() {
     let mci = AtsamdMci::new(device.SDHC0);
     let mut pins = hal::Pins::new(device.PORT);
     // Write protect pin
-    let mut wp = pins.wp.into_open_drain_output(&mut pins.port);
+    let mut wp = pins.wp.into_pull_up_input(&mut pins.port);
     // Card detect pin
-    let mut detect = pins.detect.into_open_drain_output(&mut pins.port);
+    let mut detect = pins.detect.into_pull_up_input(&mut pins.port);
     let card = MciCard::new(
         mci,
         wp, true,       // Write protect pin must be pulled high in order to be protected
@@ -30,6 +29,8 @@ pub fn mci() {
 }
 ```
 
+For ATSAMD51 remember to compile with target `thumbv7em-none-eabihf`
+
 ## Folder structure
 
 ### mci/
@@ -38,15 +39,15 @@ The crate that provides and implements the SD/MMC/SDIO protocols
 
 | Folder | Description |
 | ------ | ----------- |
-| command | Create a command to be sent to the card |
-| command/mmc_commands | MMC specific commands |
-| command/sd_commands | SD specific commands |
-| command/sdio_commands / SDIO specific commands |
+| command_arguments | Create arguments for a command to be sent to the card |
+| command_arguments/mmc | MMC specific command arguments |
+| command_arguments/sd | SD specific command arguments |
+| command_arguments/sdio / SDIO specific command arguments |
+| functions | Functions implemented on the MciCard struct according to card type |
 | registers | Describing the return values of commands and/or registers |
 | registers/sd | SD specific registers |
 | registers/sdio | SDIO specific registers |
-| sd | SD specific enums and functions |
-
+| sd | SD specific enums |
 
 ### mci-atsamd51
 
