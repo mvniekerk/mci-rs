@@ -13,13 +13,13 @@ pub mod command_flags;
 pub mod mci;
 pub mod mci_card;
 #[cfg(feature = "mmc")]
-pub mod mmc;
+pub mod mmc_functions;
 pub mod mode_index;
 pub mod registers;
 pub mod sd;
 #[cfg(feature = "sdio")]
-pub mod sdio;
+pub mod sdio_functions;
 #[cfg(feature = "sdio")]
 pub mod sdio_state;
-pub mod sdmmc;
+pub mod sdmmc_functions;
 pub mod transfer;
