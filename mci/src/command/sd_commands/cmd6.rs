@@ -27,11 +27,7 @@ impl From<bool> for Cmd6Mode {
     }
 }
 
-impl RegisterAddress<u32> for Cmd6 {
-    fn value(&self) -> u32 {
-        self.val
-    }
-
+impl RegisterAddress for Cmd6 {
     fn address() -> u8 {
         6
     }

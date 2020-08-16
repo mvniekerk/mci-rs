@@ -1,18 +1,7 @@
-use crate::registers::register_address::RegisterAddress;
 use bit_field::BitField;
 
 pub struct MciCommand {
     pub val: u32,
-}
-
-impl RegisterAddress<u32> for MciCommand {
-    fn value(&self) -> u32 {
-        self.val
-    }
-
-    fn address() -> u8 {
-        0x0
-    }
 }
 
 impl From<u32> for MciCommand {

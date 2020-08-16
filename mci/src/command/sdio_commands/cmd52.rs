@@ -73,12 +73,7 @@ impl Cmd52 {
     }
 }
 
-impl RegisterAddress<u32> for Cmd52 {
-    #[inline(always)]
-    fn value(&self) -> u32 {
-        self.val
-    }
-
+impl RegisterAddress for Cmd52 {
     fn address() -> u8 {
         unimplemented!()
     }

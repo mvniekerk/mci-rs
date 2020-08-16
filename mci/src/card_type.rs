@@ -1,18 +1,7 @@
-use crate::registers::register_address::RegisterAddress;
 use bit_field::BitField;
 
 pub struct CardType {
     pub val: u8,
-}
-
-impl RegisterAddress<u8> for CardType {
-    fn value(&self) -> u8 {
-        self.val
-    }
-
-    fn address() -> u8 {
-        unimplemented!()
-    }
 }
 
 impl CardType {

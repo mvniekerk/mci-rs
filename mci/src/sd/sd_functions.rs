@@ -13,7 +13,6 @@ use crate::mci::Mci;
 use crate::mci_card::{ocr_voltage_support, MciCard, SD_MMC_TRANS_UNITS, SD_TRANS_MULTIPLIERS};
 use crate::registers::csd::SdCsdStructureVersion;
 use crate::registers::ocr::OcrRegister;
-use crate::registers::register_address::RegisterAddress;
 use crate::registers::sd::scr::ScrRegister;
 use crate::registers::sd::switch_status::{SwitchStatusRegister, SD_SW_STATUS_FUN_GRP_RC_ERROR};
 use crate::sd::sd_physical_specification::SdPhysicalSpecification;
