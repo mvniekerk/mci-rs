@@ -6,7 +6,7 @@ edition = "2018"
 repository = "https://github.com/mvniekerk/mci-rs"
 description = "ATSAMD51 specific implementation for the MCI interface"
 keywords = [
-    "atsamd-hal", "embedded-hal", "hal", "mci", "sd", "sdmmc", "mmc", "sdio", "embedded", "no-std", "atsamd51", "cortex"
+    "embedded-hal-driver", "mci", "sdmmc", "mmc", "sdio"
 ]
 categories  = ["embedded", "hardware-support", "no-std"]
 
