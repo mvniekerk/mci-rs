@@ -1,4 +1,4 @@
-use crate::flags::{
+use crate::command_flags::{
     CommandFlag, MultiBlock, NoFlag, OpenDrain, SdioBlock, SdioByte, SdioWriteBlock, SdioWriteByte,
     SingleBlock, WriteMultiBlock, WriteSingleBlock,
 };

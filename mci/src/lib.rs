@@ -1,4 +1,3 @@
-
 #![no_std]
 #![allow(deprecated)]
 pub mod card_state;
@@ -8,7 +7,7 @@ pub mod command_arguments;
 pub mod commands;
 pub mod dummy_input_pin;
 pub mod error;
-pub mod flags;
+pub mod command_flags;
 pub mod mci;
 pub mod mci_card;
 #[cfg(feature = "mmc")]

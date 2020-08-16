@@ -17,7 +17,7 @@ use crate::registers::sd::switch_status::{SwitchStatusRegister, SD_SW_STATUS_FUN
 use crate::sd::sd_physical_specification::SdPhysicalSpecification;
 use bit_field::BitField;
 use embedded_hal::digital::v2::InputPin;
-use crate::flags::CommandFlag;
+use crate::command_flags::CommandFlag;
 
 impl<MCI, WP, DETECT> MciCard<MCI, WP, DETECT>
 where
