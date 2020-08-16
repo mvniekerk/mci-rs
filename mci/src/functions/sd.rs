@@ -18,6 +18,8 @@ use crate::sd::sd_physical_specification::SdPhysicalSpecification;
 use bit_field::BitField;
 use embedded_hal::digital::v2::InputPin;
 use crate::command_flags::CommandFlag;
+use embedded_error::mci::MciError;
+use embedded_error::ImplError;
 
 impl<MCI, WP, DETECT> MciCard<MCI, WP, DETECT>
 where
@@ -28,11 +30,11 @@ where
     /// Ask all cards to send their operations conditions (MCI only).
     /// # Arguments
     /// * `v2` Shall be true if it is a SD card V2
-    pub fn sd_mci_operations_conditions(&mut self, v2: bool) -> Result<(), ()> {
+    pub fn sd_mci_operations_conditions(&mut self, v2: bool) -> Result<(), MciError> {
         // Timeout 1s = 400KHz / ((6+6+6+6)*8) cycles = 2100 retry
         for i in (0..2100).rev() {
             if i == 0 {
-                return Err(()); // TODO Proper error
+                return Err(MciError::Impl(ImplError::TimedOut));
             }
             // CMD55 - Indicate to the card that the next command is an
             // application specific command rather than a standard command.
@@ -42,7 +44,7 @@ where
             arg.val.set_bit(30, v2); // SD_ACMD41_HCS ACMD41 High Capacity Support
             self.mci
                 .send_command(SD_MCI_ACMD41_SD_SEND_OP_COND.into(), arg.val)?;
-            let resp = self.mci.get_response();
+            let resp = self.mci.get_response()?;
             let resp = OcrRegister { val: resp };
             if resp.card_powered_up_status() {
                 if resp.card_capacity_status() {
@@ -58,7 +60,7 @@ where
         &mut self,
         command: Command<RESPONSE, FLAG>,
         arg: Cmd6,
-    ) -> Result<SwitchStatusRegister, ()> {
+    ) -> Result<SwitchStatusRegister, MciError> {
         let mut buf = [0u8; 64];
         self.mci
             .adtc_start(command.into(), arg.val, 64, 1, true)?;
@@ -75,7 +77,7 @@ where
     /// self.clock is updated
     ///
     /// True if set to high speed
-    pub fn sd_cmd6_set_to_high_speed_mode(&mut self) -> Result<bool, ()> {
+    pub fn sd_cmd6_set_to_high_speed_mode(&mut self) -> Result<bool, MciError> {
         let mut arg = Cmd6 { val: 0 };
         arg.set_function_group_1_access_mode(true)
             .set_function_group2_command_system(false)
@@ -92,7 +94,7 @@ where
         }
 
         if status.group1_busy() > 0 {
-            return Err(()); // TODO proper error
+            return Err(MciError::GroupBusy);
         }
 
         // CMD6 function switching period is within 8 clocks after then bit of status data
@@ -109,7 +111,7 @@ where
     /// voltage information and asks the card whether card supports voltage.
     /// Should be performed at initialization time to detect the card type.
     ///
-    pub fn sd_cmd8_is_v2(&mut self) -> Result<bool, ()> {
+    pub fn sd_cmd8_is_v2(&mut self) -> Result<bool, MciError> {
         let mut arg = Cmd8::default();
         arg.set_cmd8_pattern(true).set_high_voltage(true);
 
@@ -120,13 +122,13 @@ where
         {
             return Ok(false); // Not V2
         }
-        let ret = self.mci.get_response();
+        let ret = self.mci.get_response()?;
         if ret == 0xFFFF_FFFF {
             // No compliance R7 value
             return Ok(false);
         }
         if ret != arg.val as u32 {
-            return Err(()); // TODO special error
+            return Err(MciError::Impl(ImplError::InvalidConfiguration));
         }
         // Is a V2
         Ok(true)
@@ -134,7 +136,7 @@ where
 
     /// Decodes the SD CSD register
     /// updates self.clock, self.capacity
-    pub fn sd_decode_csd(&mut self) -> Result<(), ()> {
+    pub fn sd_decode_csd(&mut self) -> Result<(), MciError> {
         // 	Get SD memory maximum transfer speed in Hz.
         let trans_speed = self.csd.transmission_speed();
         let unit = SD_MMC_TRANS_UNITS[(trans_speed & 0x7) as usize];
@@ -152,7 +154,7 @@ where
     }
 
     /// ACMD6 = Define the data bus width to be 4 bits
-    pub fn sd_acmd6_set_data_bus_width_to_4_bits(&mut self) -> Result<(), ()> {
+    pub fn sd_acmd6_set_data_bus_width_to_4_bits(&mut self) -> Result<(), MciError> {
         self.mci
             .send_command(SDMMC_CMD55_APP_CMD.into(), (self.rca as u32) << 16)?;
         self.mci.send_command(SD_ACMD6_SET_BUS_WIDTH.into(), 0x2)?;
@@ -161,7 +163,7 @@ where
     }
 
     /// Get the SD Card configuration register (ACMD51)
-    pub fn sd_scr(&mut self) -> Result<ScrRegister, ()> {
+    pub fn sd_scr(&mut self) -> Result<ScrRegister, MciError> {
         let mut buf = [0u8; 8];
         self.mci
             .send_command(SDMMC_CMD55_APP_CMD.into(), (self.rca as u32) << 16)?;
@@ -177,7 +179,7 @@ where
     /// SCR provides information on the SD Memory Card's special features that were configured
     /// into the given card. The SCR register is 64 bits.
     /// Updates self.version
-    pub fn sd_acmd51(&mut self) -> Result<(), ()> {
+    pub fn sd_acmd51(&mut self) -> Result<(), MciError> {
         let scr = self.sd_scr()?;
         self.version = match scr.sd_specification_version() {
             SdPhysicalSpecification::Revision1d01 => SdCard(SdCardVersion::Sd1d0),

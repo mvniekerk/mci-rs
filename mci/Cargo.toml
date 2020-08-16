@@ -13,6 +13,11 @@ categories = [
 bit_field = "~0.10"
 embedded-hal = "^0.2"
 
+[dependencies.embedded-error]
+#git = "http://github.com/mvniekerk/embedded-error"
+#branch = "mci"
+path = "../../embedded-error"
+
 [features]
 sdio = []
 mmc = []

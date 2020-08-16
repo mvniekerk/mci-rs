@@ -14,6 +14,8 @@ use crate::registers::sdio::cccr::card_capability::CardCapabilityRegister;
 use crate::registers::sdio::cccr::function_select::FunctionSelection;
 use crate::registers::sdio::cccr::high_speed::HighSpeedRegister;
 use embedded_hal::digital::v2::InputPin;
+use embedded_error::mci::MciError;
+use embedded_error::ImplError;
 
 pub const SDIO_CCCR_CIS_PTR: u32 = 0x09;
 pub const SDIO_CISTPL_END: u8 = 0xFF;
@@ -26,7 +28,7 @@ where
     DETECT: InputPin,
 {
     /// Try to get the SDIO card's operating condition
-    pub fn sdio_send_operation_condition_command(&mut self) -> Result<(), ()> {
+    pub fn sdio_send_operation_condition_command(&mut self) -> Result<(), MciError> {
         if self
             .mci
             .send_command(SDIO_CMD5_SEND_OP_COND.into(), 0)
@@ -35,7 +37,7 @@ where
             // No error but card type not updated
             return Ok(());
         }
-        let resp = self.mci.get_response();
+        let resp = self.mci.get_response()?;
         let resp = OcrRegister { val: resp };
         if !resp.number_of_io_functions() {
             // No error but card type not updated
@@ -52,11 +54,11 @@ where
         // TODO use proper delay?
         for i in (0..5000).rev() {
             if i == 0 {
-                return Err(()); // TODO proper error
+                return Err(MciError::Impl(ImplError::TimedOut));
             }
             self.mci.send_command(SDIO_CMD5_SEND_OP_COND.into(), arg)?;
             let resp = OcrRegister {
-                val: self.mci.get_response(),
+                val: self.mci.get_response()?,
             };
             if resp.card_powered_up_status() {
                 self.card_type.set_sdio(true);
@@ -84,7 +86,7 @@ where
         register_address: u32,
         read_after_write: bool,
         write_data: u8,
-    ) -> Result<u8, ()> {
+    ) -> Result<u8, MciError> {
         let mut arg = Cmd52 { val: 0 };
         arg.set_write_data(write_data)
             .set_direction(direction)
@@ -93,7 +95,7 @@ where
             .set_register_address(register_address);
         self.mci
             .send_command(SDIO_CMD52_IO_RW_DIRECT.into(), arg.val)?;
-        let resp = self.mci.get_response() as u8;
+        let resp = self.mci.get_response()? as u8;
         Ok(resp)
     }
 
@@ -102,9 +104,9 @@ where
         address: u32,
         buf: &mut [u8],
         byte_count: usize,
-    ) -> Result<(), ()> {
+    ) -> Result<(), MciError> {
         if byte_count > buf.len() {
-            return Err(()); // Going to cause a buffer overflow
+            return Err(MciError::Impl(ImplError::InvalidConfiguration)); // Going to cause a buffer overflow
         }
         for (i, item) in buf.iter_mut().enumerate().take(byte_count) {
             *item = self.sdio_cmd52(
@@ -118,9 +120,9 @@ where
         Ok(())
     }
 
-    pub fn sdio_read_cia_32bits(&mut self, address: u32) -> Result<u32, ()> {
+    pub fn sdio_read_cia_32bits(&mut self, address: u32) -> Result<u32, MciError> {
         let mut buf = [0u8; 4];
-        self.sdio_read_cia(address, &mut buf, 4)?; // TODO proper error
+        self.sdio_read_cia(address, &mut buf, 4)?;
         let ret = (buf[0] as u32)
             + ((buf[1] as u32) << 8)
             + ((buf[2] as u32) << 16)
@@ -128,13 +130,13 @@ where
         Ok(ret)
     }
 
-    pub fn sdio_cis_area_in_ccr_address(&mut self) -> Result<u32, ()> {
+    pub fn sdio_cis_area_in_ccr_address(&mut self) -> Result<u32, MciError> {
         self.sdio_read_cia_32bits(SDIO_CCCR_CIS_PTR)
     }
 
     // TODO it says get max speed but it updates _self_. FIXME
     /// Compute SDIO max transfer speed in Hz and update self.clock.
-    pub fn sdio_get_max_speed(&mut self) -> Result<(), ()> {
+    pub fn sdio_get_max_speed(&mut self) -> Result<(), MciError> {
         let cis_address = self.sdio_cis_area_in_ccr_address()?;
         let mut buf = [0u8; 6];
         let mut addr = cis_address;
@@ -143,25 +145,25 @@ where
             // Read a sample of CIA area
             self.sdio_read_cia(addr, &mut buf, 4)?;
             if buf[0] == SDIO_CISTPL_END {
-                return Err(()); // TODO Error: Tuple error
+                return Err(MciError::CiaCouldNotFindTuple);
             }
             if buf[0] == SDIO_CISTPL_FUNCE && buf[2] == 0x0 {
                 break; // Fun0 tuple found
             }
             if buf[1] == 0 {
-                return Err(()); // TODO proper error: Tuple error
+                return Err(MciError::CiaCouldNotFindTuple);
             }
 
             // Compute next address
             addr += (buf[1] as u32) - 1;
             if addr > (cis_address + 256) {
-                return Err(()); // TODO proper error: Out of CIS area
+                return Err(MciError::CiaCouldNotFindTuple);
             }
         }
 
         // Read all Fun0 tuple field: fn0_blk_size & max_tran_speed
         addr -= 3;
-        self.sdio_read_cia(addr, &mut buf, 6)?; // TODO proper error
+        self.sdio_read_cia(addr, &mut buf, 6)?;
 
         let tplfe_max_tran_speed = if buf[5] > 0x32 {
             // Error on SDIO register, the high speed is not activated and the clock can't be more
@@ -190,7 +192,7 @@ where
     /// SD COMBO card always supports bus 4bit
     /// SDIO Full-Speed alone always supports 4bit
     /// SDIO Low-Speed alone can support 4bit (Optional)
-    pub fn sdio_cmd52_switch_to_4_bus_width_mode(&mut self) -> Result<BusWidth, ()> {
+    pub fn sdio_cmd52_switch_to_4_bus_width_mode(&mut self) -> Result<BusWidth, MciError> {
         use crate::registers::sdio::cccr::bus_interface::BusWidth as SdioBusWidth;
         let cccr_cap = CardCapabilityRegister {
             val: self.sdio_cmd52(
@@ -222,7 +224,7 @@ where
     /// self.clock updated
     ///
     /// Returns a true result if put in high speed mode, false if not possible
-    pub fn sdio_cmd52_set_high_speed_mode(&mut self) -> Result<bool, ()> {
+    pub fn sdio_cmd52_set_high_speed_mode(&mut self) -> Result<bool, MciError> {
         let high_speed = HighSpeedRegister {
             val: self.sdio_cmd52(
                 Direction::Read,
@@ -268,7 +270,7 @@ where
         increment_address: bool,
         data_size: u16,
         access_block: bool,
-    ) -> Result<(), ()> {
+    ) -> Result<(), MciError> {
         let command: u32 = if direction == Direction::Read {
             SDIO_CMD53_IO_R_BLOCK_EXTENDED.into()
         } else {
@@ -277,7 +279,7 @@ where
         let mut arg = Cmd53::default();
 
         if data_size == 0 || data_size > 512 {
-            return Err(()); // TODO proper error for not having correct size
+            return Err(MciError::IncorrectDataSize);
         }
 
         arg.set_block_or_bytes_count(data_size % 512)
@@ -294,8 +296,8 @@ where
         &mut self,
         function: FunctionSelection,
         address: u32,
-    ) -> Result<u8, ()> {
-        self.sd_mmc_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
+    ) -> Result<u8, MciError> {
+        self.sd_mmc_select_this_device_on_mci_and_configure_mci()?;
         self.sdio_cmd52(Direction::Read, function, address, false, 0)
     }
 
@@ -304,8 +306,8 @@ where
         function: FunctionSelection,
         address: u32,
         data: u8,
-    ) -> Result<(), ()> {
-        self.sd_mmc_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
+    ) -> Result<(), MciError> {
+        self.sd_mmc_select_this_device_on_mci_and_configure_mci()?;
         self.sdio_cmd52(Direction::Write, function, address, false, data)
             .map(|_| ()) // TODO proper error
     }
@@ -317,7 +319,7 @@ where
         increment_address: bool,
         destination: &mut [u8],
         size: u16,
-    ) -> Result<(), ()> {
+    ) -> Result<(), MciError> {
         self.sd_mmc_select_this_device_on_mci_and_configure_mci()?;
         self.sdio_cmd53_io_rw_extended(
             Direction::Read,
@@ -326,9 +328,9 @@ where
             increment_address,
             size,
             true,
-        )?; // TODO proper error
-        self.mci.read_blocks(destination, 1)?; // TODO proper error
-        self.mci.wait_until_read_finished() // TODO proper error
+        )?;
+        self.mci.read_blocks(destination, 1)?;
+        self.mci.wait_until_read_finished()
     }
 
     pub fn sdio_write_extended(
@@ -338,8 +340,8 @@ where
         increment_address: bool,
         source: &[u8],
         size: u16,
-    ) -> Result<(), ()> {
-        self.sd_mmc_select_this_device_on_mci_and_configure_mci()?; // TODO proper error
+    ) -> Result<(), MciError> {
+        self.sd_mmc_select_this_device_on_mci_and_configure_mci()?;
         self.sdio_cmd53_io_rw_extended(
             Direction::Write,
             function,
@@ -348,7 +350,7 @@ where
             size,
             true,
         )?; // TODO proper error
-        self.mci.write_blocks(source, 1)?; // TODO proper error
+        self.mci.write_blocks(source, 1)?;
         self.mci.wait_until_write_finished() // TODO proper error
     }
 }

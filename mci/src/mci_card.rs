@@ -6,6 +6,7 @@ use crate::mci::Mci;
 use crate::registers::csd::CsdRegister;
 use crate::registers::ocr::OcrRegister;
 use embedded_hal::digital::v2::InputPin;
+use embedded_error::mci::MciError;
 
 // SD/MMC transfer rate unit codes (10K) list
 pub const SD_MMC_TRANS_UNITS: [u32; 7] = [10, 100, 1_000, 10_000, 0, 0, 0];
@@ -101,8 +102,8 @@ where
         }
     }
 
-    pub fn write_protected(&self) -> Result<bool, ()> {
-        let level = self.wp.is_high().map_err(|_| ())?; //TODO proper error for pin fault
+    pub fn write_protected(&self) -> Result<bool, MciError> {
+        let level = self.wp.is_high().map_err(|_| MciError::PinLevelReadError)?; //TODO proper error for pin fault
         Ok(level == self.wp_high_activated)
     }
 }

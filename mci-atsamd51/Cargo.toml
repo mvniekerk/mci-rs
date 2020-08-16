@@ -24,6 +24,10 @@ optional = true
 [dependencies.mci]
 path = "../mci"
 
+[dependencies.embedded-error]
+git = "http://github.com/mvniekerk/embedded-error"
+branch = "mci"
+
 [features]
 sdio = ["mci/sdio"]
 mmc = ["mci/mmc"]

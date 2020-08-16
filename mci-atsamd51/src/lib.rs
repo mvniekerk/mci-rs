@@ -4,6 +4,11 @@ use bit_field::BitField;
 use mci::command_arguments::mci_command::MciCommand;
 use mci::command_arguments::mmc::BusWidth;
 use mci::mci::Mci;
+use embedded_error::mci::command_error::CommandError;
+use embedded_error::mci::MciError;
+use embedded_error::mci::data_error::DataError;
+use embedded_error::ImplError;
+use core::hint::unreachable_unchecked;
 
 pub struct AtsamdMci {
     sdhc: SDHC0,
@@ -13,30 +18,30 @@ pub struct AtsamdMci {
 }
 
 impl AtsamdMci {
-    pub fn new(sdhc: SDHC0) -> Result<AtsamdMci, ()> {
-        Ok(AtsamdMci {
+    pub fn new(sdhc: SDHC0) -> AtsamdMci {
+        AtsamdMci {
             sdhc,
             trans_pos: 0,
             block_size: 0,
             block_amount: 0,
-        })
+        }
     }
 
     pub fn reset(&mut self) {
         self.sdhc.srr.modify(|_, w| w.swrstcmd().set_bit());
     }
 
-    pub fn wait_busy(&mut self) -> Result<(), ()> {
+    pub fn wait_busy(&mut self) -> Result<(), MciError> {
         for n in (0u32..=0xFFFF_FFFFu32).rev() {
             if n == 0 {
                 self.reset();
-                return Err(());
+                return Err(MciError::Impl(ImplError::TimedOut));
             }
             if self.sdhc.psr.read().datll().bits() == 0x1 {
                 return Ok(());
             }
         }
-        Ok(())
+        unsafe { unreachable_unchecked() }
     }
 
     pub fn set_speed(&mut self, speed: u32, prog_clock_mode: u8) {
@@ -95,7 +100,7 @@ impl AtsamdMci {
     }
 
     /// Send a command
-    pub fn send_command_execute(&mut self, mut cmdr: u16, cmd: u32, arg: u32) -> Result<(), ()> {
+    pub fn send_command_execute(&mut self, mut cmdr: u16, cmd: u32, arg: u32) -> Result<(), MciError> {
         cmdr.set_bits(8..16, cmd as u16);
         let cmd: MciCommand = cmd.into();
 
@@ -125,18 +130,21 @@ impl AtsamdMci {
 
         loop {
             let sr = self.sdhc.eister().read();
-            if (sr.cmdteo().bit_is_set()
-                || sr.cmdend().bit_is_set()
-                || sr.cmdidx().bit_is_set()
-                || sr.datteo().bit_is_set()
-                || sr.datend().bit_is_set()
-                || sr.adma().bit_is_set())
-                || (cmd.expect_valid_crc()
-                    && (sr.cmdcrc().bit_is_set() || sr.datcrc().bit_is_set()))
-            {
+            let error = error_from_eistr(
+                sr.cmdteo().bit_is_set(),
+                sr.cmdcrc().bit_is_set(),
+                sr.cmdend().bit_is_set(),
+                sr.cmdidx().bit_is_set(),
+                sr.datteo().bit_is_set(),
+                sr.datcrc().bit_is_set(),
+                sr.datend().bit_is_set(),
+                sr.adma().bit_is_set(),
+                cmd.expect_valid_crc()
+            );
+            if error.is_some() {
                 self.reset();
                 self.sdhc.eister().write(|w| unsafe { w.bits(0x03FF) });
-                return Err(());
+                return Err(error.unwrap());
             }
             if self.sdhc.nistr().read().cmdc().bit_is_clear() {
                 break;
@@ -154,11 +162,16 @@ impl AtsamdMci {
         Ok(())
     }
 
-    pub fn eistr_err(&mut self) -> Result<(), ()> {
+    pub fn eistr_err(&mut self) -> Result<(), MciError> {
         let sr = self.sdhc.eistr().read();
-        if sr.datteo().bit_is_set() || sr.datcrc().bit_is_set() || sr.datend().bit_is_set() {
+        let error = command_error_from_eistr(
+            sr.datteo().bit_is_set(),
+            sr.datcrc().bit_is_set(),
+            sr.datend().bit_is_set()
+        );
+        if error.is_some() {
             self.reset();
-            return Err(()); // TODO proper error
+            return Err(MciError::CommandError(error.unwrap()));
         }
         Ok(())
     }
@@ -166,9 +179,9 @@ impl AtsamdMci {
     pub fn loop_or_on_eistr_err<F: FnMut(&mut AtsamdMci) -> bool>(
         &mut self,
         mut f: F,
-    ) -> Result<(), ()> {
+    ) -> Result<(), MciError> {
         loop {
-            self.eistr_err()?; // TODO proper error
+            self.eistr_err()?;
             if f(self) {
                 break;
             }
@@ -177,8 +190,54 @@ impl AtsamdMci {
     }
 }
 
+fn command_error_from_eistr(timeout: bool, crc: bool, end: bool) -> Option<CommandError> {
+    if timeout {
+        Some(CommandError::Timeout)
+    } else if crc {
+        Some(CommandError::Crc)
+    } else if end {
+        Some(CommandError::EndBit)
+    } else {
+        None
+    }
+}
+
+fn error_from_eistr(
+    cmd_timeout: bool,
+    cmd_crc: bool,
+    cmd_endbit: bool,
+    cmd_index: bool,
+    dat_timeout: bool,
+    dat_crc: bool,
+    dat_endbit: bool,
+    adma: bool,
+    expect_valid_crc: bool
+) -> Option<MciError> {
+    if cmd_timeout {
+        Some(MciError::CommandError(CommandError::Timeout))
+    } else if cmd_endbit {
+        Some(MciError::CommandError(CommandError::EndBit))
+    } else if cmd_index {
+        Some(MciError::CommandError(CommandError::Index))
+    } else if dat_timeout {
+        Some(MciError::DataError(DataError::Timeout))
+    } else if dat_endbit {
+        Some(MciError::DataError(DataError::EndBit))
+    } else if adma {
+        Some(MciError::Adma)
+    } else if expect_valid_crc && (cmd_crc || dat_crc) {
+        Some(if cmd_crc {
+            MciError::CommandError(CommandError::Crc)
+        } else {
+            MciError::DataError(DataError::Crc)
+        })
+    } else {
+        None
+    }
+}
+
 impl Mci for AtsamdMci {
-    fn init(&mut self) -> Result<(), ()> {
+    fn init(&mut self) -> Result<(), MciError> {
         self.sdhc.srr.modify(|_, w| w.swrstall().set_bit());
         loop {
             if self.sdhc.srr.read().swrstall().bit_is_clear() {
@@ -198,9 +257,9 @@ impl Mci for AtsamdMci {
         Ok(())
     }
 
-    fn send_command(&mut self, cmd: u32, arg: u32) -> Result<(), ()> {
+    fn send_command(&mut self, cmd: u32, arg: u32) -> Result<(), MciError> {
         if self.sdhc.psr.read().cmdinhc().bit_is_set() {
-            return Err(()); // TODO proper error
+            return Err(MciError::CommandInhibited);
         }
 
         self.sdhc.tmr.modify(|_, w| w.dmaen().clear_bit());
@@ -208,7 +267,7 @@ impl Mci for AtsamdMci {
         self.send_command_execute(0, cmd, arg)
     }
 
-    fn deinit(&mut self) -> Result<(), ()> {
+    fn deinit(&mut self) -> Result<(), MciError> {
         // NOP
         Ok(())
     }
@@ -219,7 +278,7 @@ impl Mci for AtsamdMci {
         clock: u32,
         bus_width: &BusWidth,
         high_speed: bool,
-    ) -> Result<(), ()> {
+    ) -> Result<(), MciError> {
         self.sdhc.hc1r().modify(|_, w| {
             if high_speed {
                 w.hsen().set_bit()
@@ -235,47 +294,47 @@ impl Mci for AtsamdMci {
         match bus_width {
             BusWidth::_1BIT => self.sdhc.hc1r().modify(|_, w| w.dw().clear_bit()),
             BusWidth::_4BIT => self.sdhc.hc1r().modify(|_, w| w.dw().set_bit()),
-            _ => return Err(()), // TODO proper error for invalid argument
+            _ => return Err(MciError::Impl(ImplError::InvalidConfiguration)),
         }
         Ok(())
     }
 
-    fn deselect_device(&mut self, _slot: u8) -> Result<(), ()> {
+    fn deselect_device(&mut self, _slot: u8) -> Result<(), MciError> {
         // NOP
         Ok(())
     }
 
-    fn get_bus_width(&mut self, slot: u8) -> Result<BusWidth, ()> {
+    fn get_bus_width(&mut self, slot: u8) -> Result<BusWidth, MciError> {
         match slot {
             0 => Ok(BusWidth::_4BIT),
-            _ => Err(()), // TOD proper error for invalid argument
+            _ => Err(MciError::Impl(ImplError::InvalidConfiguration)),
         }
     }
 
-    fn is_high_speed_capable(&mut self) -> Result<bool, ()> {
+    fn is_high_speed_capable(&mut self) -> Result<bool, MciError> {
         Ok(self.sdhc.ca0r.read().hssup().bit_is_set())
     }
 
     /// Send 74 clock cycles on the line.
     /// Note: It is required after card plug and before card install.
-    fn send_clock(&mut self) -> Result<(), ()> {
+    fn send_clock(&mut self) -> Result<(), MciError> {
         for _m in 0..5000u32 {
             // Nop
         }
         Ok(())
     }
 
-    fn get_response(&mut self) -> u32 {
-        self.sdhc.rr[0].read().cmdresp().bits()
+    fn get_response(&mut self) -> Result<u32, MciError> {
+        Ok(self.sdhc.rr[0].read().cmdresp().bits())
     }
 
-    fn get_response128(&mut self) -> [u32; 4] {
-        [
+    fn get_response128(&mut self) -> Result<[u32; 4], MciError> {
+        Ok([
             self.sdhc.rr[0].read().cmdresp().bits(),
             self.sdhc.rr[1].read().cmdresp().bits(),
             self.sdhc.rr[2].read().cmdresp().bits(),
             self.sdhc.rr[3].read().cmdresp().bits(),
-        ]
+        ])
     }
 
     fn adtc_start(
@@ -285,11 +344,11 @@ impl Mci for AtsamdMci {
         block_size: u16,
         block_amount: u16,
         _access_in_blocks: bool,
-    ) -> Result<(), ()> {
+    ) -> Result<(), MciError> {
         let psr = self.sdhc.psr.read();
         // Check Command Inhibit (CMD/DAT) in the Present State register
         if psr.cmdinhc().bit_is_set() || psr.cmdinhd().bit_is_set() {
-            return Err(()); // TODO proper error why we're erroring
+            return Err(MciError::CommandInhibited);
         }
 
         let command: MciCommand = command.into();
@@ -298,7 +357,7 @@ impl Mci for AtsamdMci {
             && !command.single_block_data_transfer()
             && !command.multi_block_data_transfer()
         {
-            return Err(()); // TODO proper error
+            return Err(MciError::Impl(ImplError::InvalidConfiguration));
         }
 
         self.sdhc.tmr.write(|w| {
@@ -333,12 +392,12 @@ impl Mci for AtsamdMci {
         self.send_command_execute(1 << 5, command.val, argument)
     }
 
-    fn adtc_stop(&self, _command: u32, _argument: u32) -> Result<(), ()> {
+    fn adtc_stop(&self, _command: u32, _argument: u32) -> Result<(), MciError> {
         // Nop
         Ok(())
     }
 
-    fn read_word(&mut self) -> Result<(u32, u8), ()> {
+    fn read_word(&mut self) -> Result<(u32, u8), MciError> {
         let nbytes: u8 =
             if ((self.block_size as u64) * (self.block_amount as u64)) - self.trans_pos > 4 {
                 (self.block_size % 4) as u8
@@ -371,7 +430,7 @@ impl Mci for AtsamdMci {
         Ok((val, nbytes))
     }
 
-    fn write_word(&mut self, val: u32) -> Result<bool, ()> {
+    fn write_word(&mut self, val: u32) -> Result<bool, MciError> {
         let nbytes = 4u64; // self.block_size & 0x3 ? 1 : 4
         if self.trans_pos % (self.block_size as u64) == 0 {
             self.loop_or_on_eistr_err(|f| f.sdhc.nistr().read().bwrrdy().bit_is_set())?;
@@ -386,12 +445,12 @@ impl Mci for AtsamdMci {
         }
 
         // Wait end of transfer
-        self.loop_or_on_eistr_err(|f| f.sdhc.nistr().read().trfc().bit_is_set())?; //TODO proper error
+        self.loop_or_on_eistr_err(|f| f.sdhc.nistr().read().trfc().bit_is_set())?;
         self.sdhc.nistr().modify(|_, w| w.trfc().yes());
         Ok(true)
     }
 
-    fn read_blocks(&mut self, destination: &mut [u8], number_of_blocks: u16) -> Result<bool, ()> {
+    fn read_blocks(&mut self, destination: &mut [u8], number_of_blocks: u16) -> Result<bool, MciError> {
         let mut data = (number_of_blocks as u64) * (self.block_size as u64);
         let len = data as usize;
         let mut index = 0usize;
@@ -416,7 +475,7 @@ impl Mci for AtsamdMci {
         Ok(true)
     }
 
-    fn write_blocks(&mut self, write_data: &[u8], number_of_blocks: u16) -> Result<bool, ()> {
+    fn write_blocks(&mut self, write_data: &[u8], number_of_blocks: u16) -> Result<bool, MciError> {
         let mut data = (number_of_blocks as u64) * (self.block_size as u64);
         let len = data as usize;
         let mut index = 0usize;
@@ -440,12 +499,12 @@ impl Mci for AtsamdMci {
         Ok(true)
     }
 
-    fn wait_until_read_finished(&self) -> Result<(), ()> {
+    fn wait_until_read_finished(&self) -> Result<(), MciError> {
         // Nop
         Ok(())
     }
 
-    fn wait_until_write_finished(&self) -> Result<(), ()> {
+    fn wait_until_write_finished(&self) -> Result<(), MciError> {
         // Nop
         Ok(())
     }
