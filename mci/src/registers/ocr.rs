@@ -1,4 +1,4 @@
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 use bit_field::BitField;
 use core::hint::unreachable_unchecked;
 

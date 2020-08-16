@@ -1,11 +1,11 @@
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 use bit_field::BitField;
 
 pub struct ExecutionFlagsRegister {
     pub val: u8,
 }
 
-impl Register for ExecutionFlagsRegister {
+impl RegisterAddress for ExecutionFlagsRegister {
     fn address() -> u8 {
         0x0Eu8
     }

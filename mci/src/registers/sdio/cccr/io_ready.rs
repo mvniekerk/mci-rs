@@ -1,11 +1,11 @@
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 use bit_field::BitField;
 
 pub struct IoReadyRegister {
     pub val: u8,
 }
 
-impl Register for IoReadyRegister {
+impl RegisterAddress for IoReadyRegister {
     fn address() -> u8 {
         0x03u8
     }

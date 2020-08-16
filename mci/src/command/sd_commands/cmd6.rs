@@ -1,4 +1,4 @@
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 use bit_field::BitField;
 
 pub struct Cmd6 {
@@ -27,7 +27,7 @@ impl From<bool> for Cmd6Mode {
     }
 }
 
-impl Register<u32> for Cmd6 {
+impl RegisterAddress<u32> for Cmd6 {
     fn value(&self) -> u32 {
         self.val
     }

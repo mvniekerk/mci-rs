@@ -1,11 +1,11 @@
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 use bit_field::BitField;
 
 pub struct InterruptEnableRegister {
     pub val: u8,
 }
 
-impl Register for InterruptEnableRegister {
+impl RegisterAddress for InterruptEnableRegister {
     fn address() -> u8 {
         0x04u8
     }

@@ -1,4 +1,4 @@
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 use bit_field::BitField;
 use core::hint::unreachable_unchecked;
 
@@ -35,7 +35,7 @@ pub struct FunctionSelectionRegister {
     pub val: u8,
 }
 
-impl Register for FunctionSelectionRegister {
+impl RegisterAddress for FunctionSelectionRegister {
     fn address() -> u8 {
         0x0Du8
     }

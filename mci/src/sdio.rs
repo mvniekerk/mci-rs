@@ -8,7 +8,7 @@ use crate::commands::{
 use crate::mci::Mci;
 use crate::mci_card::{ocr_voltage_support, MciCard, SD_MMC_TRANS_UNITS, SD_TRANS_MULTIPLIERS};
 use crate::registers::ocr::OcrRegister;
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 use crate::registers::sdio::cccr::bus_interface::BusInterfaceControlRegister;
 use crate::registers::sdio::cccr::card_capability::CardCapabilityRegister;
 use crate::registers::sdio::cccr::function_select::FunctionSelection;

@@ -1,4 +1,4 @@
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 use crate::sd::sd_physical_specification::SdPhysicalSpecification;
 use bit_field::BitField;
 
@@ -6,7 +6,7 @@ pub struct SdPhysicalSpecificationRegister {
     pub val: u8,
 }
 
-impl Register for SdPhysicalSpecificationRegister {
+impl RegisterAddress for SdPhysicalSpecificationRegister {
     fn address() -> u8 {
         0x01u8
     }

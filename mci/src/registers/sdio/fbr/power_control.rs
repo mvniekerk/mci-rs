@@ -1,4 +1,4 @@
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 use bit_field::BitField;
 
 pub struct PowerControlRegister {
@@ -24,7 +24,7 @@ impl PowerControlRegister {
     }
 }
 
-impl Register for PowerControlRegister {
+impl RegisterAddress for PowerControlRegister {
     fn address() -> u8 {
         0x2
     }

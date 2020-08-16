@@ -1,4 +1,4 @@
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 use bit_field::BitField;
 use core::hint::unreachable_unchecked;
 
@@ -23,7 +23,7 @@ pub struct BusInterfaceControlRegister {
     pub val: u8,
 }
 
-impl Register for BusInterfaceControlRegister {
+impl RegisterAddress for BusInterfaceControlRegister {
     fn address() -> u8 {
         0x07u8
     }

@@ -1,11 +1,11 @@
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 use bit_field::BitField;
 
 pub struct MciCommand {
     pub val: u32,
 }
 
-impl Register<u32> for MciCommand {
+impl RegisterAddress<u32> for MciCommand {
     fn value(&self) -> u32 {
         self.val
     }

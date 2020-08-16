@@ -1,11 +1,11 @@
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 
 /// Read/Write fifo to CSA
 pub struct FifoToCsaReadWriteRegister {
     pub val: u8,
 }
 
-impl Register for FifoToCsaReadWriteRegister {
+impl RegisterAddress for FifoToCsaReadWriteRegister {
     fn address() -> u8 {
         0xF
     }

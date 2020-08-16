@@ -1,11 +1,11 @@
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 use bit_field::BitField;
 
 pub struct InterruptPendingRegister {
     pub val: u8,
 }
 
-impl Register for InterruptPendingRegister {
+impl RegisterAddress for InterruptPendingRegister {
     fn address() -> u8 {
         0x05
     }

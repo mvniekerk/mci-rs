@@ -1,4 +1,4 @@
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 use bit_field::BitField;
 
 /// FN0 block size, LSB first
@@ -24,7 +24,7 @@ impl BlockSize {
     }
 }
 
-impl Register for BlockSize {
+impl RegisterAddress for BlockSize {
     fn address() -> u8 {
         0x10u8
     }

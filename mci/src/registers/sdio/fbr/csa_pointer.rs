@@ -1,4 +1,4 @@
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 use bit_field::BitField;
 
 /// Address pointer to CSA, 3 bytes, LSB first
@@ -32,7 +32,7 @@ impl CsaPointerRegister {
     }
 }
 
-impl Register for CsaPointerRegister {
+impl RegisterAddress for CsaPointerRegister {
     fn address() -> u8 {
         0x9
     }

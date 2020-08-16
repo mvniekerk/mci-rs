@@ -1,3 +1,3 @@
-pub trait Register {
+pub trait RegisterAddress {
     fn address() -> u8;
 }

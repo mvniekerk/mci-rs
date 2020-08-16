@@ -1,4 +1,4 @@
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 use bit_field::BitArray;
 
 #[derive(Default)]
@@ -6,7 +6,7 @@ pub struct CsdRegister {
     pub val: [u32; 4],
 }
 
-impl Register for CsdRegister {
+impl RegisterAddress for CsdRegister {
     fn address() -> u8 {
         0x10u8
     }

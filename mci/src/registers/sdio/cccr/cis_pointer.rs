@@ -1,10 +1,10 @@
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 
 pub struct CisPointerRegister {
     pub val: u8,
 }
 
-impl Register for CisPointerRegister {
+impl RegisterAddress for CisPointerRegister {
     fn address() -> u8 {
         0x09u8
     }

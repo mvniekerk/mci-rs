@@ -1,11 +1,11 @@
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 use bit_field::BitField;
 
 pub struct HighSpeedRegister {
     pub val: u8,
 }
 
-impl Register for HighSpeedRegister {
+impl RegisterAddress for HighSpeedRegister {
     fn address() -> u8 {
         0x13
     }

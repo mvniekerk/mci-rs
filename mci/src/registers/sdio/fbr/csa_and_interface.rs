@@ -1,4 +1,4 @@
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 use bit_field::BitField;
 use core::hint::unreachable_unchecked;
 
@@ -73,7 +73,7 @@ impl CsaAndInterfaceCodeRegister {
     }
 }
 
-impl Register for CsaAndInterfaceCodeRegister {
+impl RegisterAddress for CsaAndInterfaceCodeRegister {
     fn address() -> u8 {
         0x0
     }

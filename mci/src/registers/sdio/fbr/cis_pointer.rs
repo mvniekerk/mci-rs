@@ -1,4 +1,4 @@
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 use bit_field::BitField;
 
 /// Address pointer to function CIS (3 bytes, LSB first
@@ -32,7 +32,7 @@ impl CisPointerRegister {
     }
 }
 
-impl Register for CisPointerRegister {
+impl RegisterAddress for CisPointerRegister {
     fn address() -> u8 {
         0x9
     }

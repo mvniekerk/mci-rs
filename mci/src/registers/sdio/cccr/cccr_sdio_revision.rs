@@ -1,4 +1,4 @@
-use crate::registers::register::Register;
+use crate::registers::register::RegisterAddress;
 use bit_field::BitField;
 use core::hint::unreachable_unchecked;
 
@@ -55,7 +55,7 @@ pub struct CccrSdioRevisionRegister {
     pub val: u8,
 }
 
-impl Register for CccrSdioRevisionRegister {
+impl RegisterAddress for CccrSdioRevisionRegister {
     fn address() -> u8 {
         0x00u8
     }
