@@ -52,3 +52,8 @@ The crate that provides and implements the SD/MMC/SDIO protocols
 ### mci-atsamd51
 
 Crate for the implementation of MCI interface for ATSAMD51 devices
+
+# Documentation and specifications
+
+https://www.sdcard.org/
+

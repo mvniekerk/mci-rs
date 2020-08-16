@@ -4,9 +4,8 @@ use bit_field::BitField;
 use mci::command_arguments::mci_command::MciCommand;
 use mci::command_arguments::mmc::BusWidth;
 use mci::mci::Mci;
-use embedded_error::mci::command_error::CommandError;
+use embedded_error::mci::CommandOrDataError;
 use embedded_error::mci::MciError;
-use embedded_error::mci::data_error::DataError;
 use embedded_error::ImplError;
 use core::hint::unreachable_unchecked;
 
@@ -190,13 +189,13 @@ impl AtsamdMci {
     }
 }
 
-fn command_error_from_eistr(timeout: bool, crc: bool, end: bool) -> Option<CommandError> {
+fn command_error_from_eistr(timeout: bool, crc: bool, end: bool) -> Option<CommandOrDataError> {
     if timeout {
-        Some(CommandError::Timeout)
+        Some(CommandOrDataError::Timeout)
     } else if crc {
-        Some(CommandError::Crc)
+        Some(CommandOrDataError::Crc)
     } else if end {
-        Some(CommandError::EndBit)
+        Some(CommandOrDataError::EndBit)
     } else {
         None
     }
@@ -214,22 +213,22 @@ fn error_from_eistr(
     expect_valid_crc: bool
 ) -> Option<MciError> {
     if cmd_timeout {
-        Some(MciError::CommandError(CommandError::Timeout))
+        Some(MciError::CommandError(CommandOrDataError::Timeout))
     } else if cmd_endbit {
-        Some(MciError::CommandError(CommandError::EndBit))
+        Some(MciError::CommandError(CommandOrDataError::EndBit))
     } else if cmd_index {
-        Some(MciError::CommandError(CommandError::Index))
+        Some(MciError::CommandError(CommandOrDataError::Index))
     } else if dat_timeout {
-        Some(MciError::DataError(DataError::Timeout))
+        Some(MciError::DataError(CommandOrDataError::Timeout))
     } else if dat_endbit {
-        Some(MciError::DataError(DataError::EndBit))
+        Some(MciError::DataError(CommandOrDataError::EndBit))
     } else if adma {
         Some(MciError::Adma)
     } else if expect_valid_crc && (cmd_crc || dat_crc) {
         Some(if cmd_crc {
-            MciError::CommandError(CommandError::Crc)
+            MciError::CommandError(CommandOrDataError::Crc)
         } else {
-            MciError::DataError(DataError::Crc)
+            MciError::DataError(CommandOrDataError::Crc)
         })
     } else {
         None

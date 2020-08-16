@@ -5,9 +5,13 @@ authors = ["Michael van Niekerk <mike@pathfinderza.com>"]
 edition = "2018"
 repository = "https://github.com/mvniekerk/mci-rs"
 description = "ATSAMD51 specific implementation for the MCI interface"
-categories = [
+keywords = [
     "atsamd-hal", "embedded-hal", "hal", "mci", "sd", "sdmmc", "mmc", "sdio", "embedded", "no-std", "atsamd51", "cortex"
 ]
+categories  = ["embedded", "hardware-support", "no-std"]
+
+license = "MIT OR Apache-2.0"
+
 
 [dependencies]
 bit_field = "~0.10"
@@ -25,8 +29,7 @@ optional = true
 path = "../mci"
 
 [dependencies.embedded-error]
-git = "http://github.com/mvniekerk/embedded-error"
-branch = "mci"
+git = "http://github.com/therealprof/embedded-error"
 
 [features]
 sdio = ["mci/sdio"]

@@ -16,7 +16,7 @@ use embedded_hal::digital::v2::InputPin;
 use crate::functions::sdmmc::SD_MMC_BLOCK_SIZE;
 use embedded_error::mci::MciError;
 use embedded_error::ImplError;
-use embedded_error::mci::setup::SetupError;
+use embedded_error::mci::SetupError;
 
 pub const EXT_CSD_CARD_TYPE_INDEX: u32 = 196;
 pub const EXT_CSD_SEC_COUNT_INDEX: u32 = 212;
