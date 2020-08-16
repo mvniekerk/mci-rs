@@ -13,9 +13,9 @@ use crate::registers::sdio::cccr::bus_interface::BusInterfaceControlRegister;
 use crate::registers::sdio::cccr::card_capability::CardCapabilityRegister;
 use crate::registers::sdio::cccr::function_select::FunctionSelection;
 use crate::registers::sdio::cccr::high_speed::HighSpeedRegister;
-use embedded_hal::digital::v2::InputPin;
 use embedded_error::mci::MciError;
 use embedded_error::ImplError;
+use embedded_hal::digital::v2::InputPin;
 
 pub const SDIO_CCCR_CIS_PTR: u32 = 0x09;
 pub const SDIO_CISTPL_END: u8 = 0xFF;

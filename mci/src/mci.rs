@@ -74,7 +74,11 @@ pub trait Mci {
     /// # Arguments
     ///  * `destination` Buffer to write to
     ///  * `number_of_blocks` Number of blocks to read
-    fn read_blocks(&mut self, destination: &mut [u8], number_of_blocks: u16) -> Result<bool, MciError>;
+    fn read_blocks(
+        &mut self,
+        destination: &mut [u8],
+        number_of_blocks: u16,
+    ) -> Result<bool, MciError>;
 
     /// Start a write block transfer on the line
     /// # Arguments

@@ -1,9 +1,10 @@
 use crate::card_version::CardVersion::SdCard;
 use crate::card_version::SdCardVersion;
 use crate::command_arguments::mmc::BusWidth;
-use crate::command_responses::Response;
 use crate::command_arguments::sd::cmd6::{Cmd6, Cmd6Mode};
 use crate::command_arguments::sd::cmd8::Cmd8;
+use crate::command_flags::CommandFlag;
+use crate::command_responses::Response;
 use crate::commands::{
     Command, SDMMC_CMD55_APP_CMD, SD_ACMD51_SEND_SCR, SD_ACMD6_SET_BUS_WIDTH, SD_CMD6_SWITCH_FUNC,
     SD_CMD8_SEND_IF_COND, SD_MCI_ACMD41_SD_SEND_OP_COND,
@@ -16,10 +17,9 @@ use crate::registers::sd::scr::ScrRegister;
 use crate::registers::sd::switch_status::{SwitchStatusRegister, SD_SW_STATUS_FUN_GRP_RC_ERROR};
 use crate::sd::sd_physical_specification::SdPhysicalSpecification;
 use bit_field::BitField;
-use embedded_hal::digital::v2::InputPin;
-use crate::command_flags::CommandFlag;
 use embedded_error::mci::MciError;
 use embedded_error::ImplError;
+use embedded_hal::digital::v2::InputPin;
 
 impl<MCI, WP, DETECT> MciCard<MCI, WP, DETECT>
 where
@@ -62,8 +62,7 @@ where
         arg: Cmd6,
     ) -> Result<SwitchStatusRegister, MciError> {
         let mut buf = [0u8; 64];
-        self.mci
-            .adtc_start(command.into(), arg.val, 64, 1, true)?;
+        self.mci.adtc_start(command.into(), arg.val, 64, 1, true)?;
         self.mci.read_blocks(&mut buf, 1)?;
         self.mci.wait_until_read_finished()?;
 

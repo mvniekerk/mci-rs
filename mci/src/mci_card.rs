@@ -5,8 +5,8 @@ use crate::command_arguments::mmc::BusWidth;
 use crate::mci::Mci;
 use crate::registers::csd::CsdRegister;
 use crate::registers::ocr::OcrRegister;
-use embedded_hal::digital::v2::InputPin;
 use embedded_error::mci::MciError;
+use embedded_hal::digital::v2::InputPin;
 
 // SD/MMC transfer rate unit codes (10K) list
 pub const SD_MMC_TRANS_UNITS: [u32; 7] = [10, 100, 1_000, 10_000, 0, 0, 0];

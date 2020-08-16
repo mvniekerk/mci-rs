@@ -1,13 +1,13 @@
 #![no_std]
 use atsamd_hal::target_device::SDHC0;
 use bit_field::BitField;
-use mci::command_arguments::mci_command::MciCommand;
-use mci::command_arguments::mmc::BusWidth;
-use mci::mci::Mci;
+use core::hint::unreachable_unchecked;
 use embedded_error::mci::CommandOrDataError;
 use embedded_error::mci::MciError;
 use embedded_error::ImplError;
-use core::hint::unreachable_unchecked;
+use mci::command_arguments::mci_command::MciCommand;
+use mci::command_arguments::mmc::BusWidth;
+use mci::mci::Mci;
 
 pub struct AtsamdMci {
     sdhc: SDHC0,
@@ -99,7 +99,12 @@ impl AtsamdMci {
     }
 
     /// Send a command
-    pub fn send_command_execute(&mut self, mut cmdr: u16, cmd: u32, arg: u32) -> Result<(), MciError> {
+    pub fn send_command_execute(
+        &mut self,
+        mut cmdr: u16,
+        cmd: u32,
+        arg: u32,
+    ) -> Result<(), MciError> {
         cmdr.set_bits(8..16, cmd as u16);
         let cmd: MciCommand = cmd.into();
 
@@ -138,7 +143,7 @@ impl AtsamdMci {
                 sr.datcrc().bit_is_set(),
                 sr.datend().bit_is_set(),
                 sr.adma().bit_is_set(),
-                cmd.expect_valid_crc()
+                cmd.expect_valid_crc(),
             );
             if error.is_some() {
                 self.reset();
@@ -166,7 +171,7 @@ impl AtsamdMci {
         let error = command_error_from_eistr(
             sr.datteo().bit_is_set(),
             sr.datcrc().bit_is_set(),
-            sr.datend().bit_is_set()
+            sr.datend().bit_is_set(),
         );
         if error.is_some() {
             self.reset();
@@ -210,7 +215,7 @@ fn error_from_eistr(
     dat_crc: bool,
     dat_endbit: bool,
     adma: bool,
-    expect_valid_crc: bool
+    expect_valid_crc: bool,
 ) -> Option<MciError> {
     if cmd_timeout {
         Some(MciError::CommandError(CommandOrDataError::Timeout))
@@ -449,7 +454,11 @@ impl Mci for AtsamdMci {
         Ok(true)
     }
 
-    fn read_blocks(&mut self, destination: &mut [u8], number_of_blocks: u16) -> Result<bool, MciError> {
+    fn read_blocks(
+        &mut self,
+        destination: &mut [u8],
+        number_of_blocks: u16,
+    ) -> Result<bool, MciError> {
         let mut data = (number_of_blocks as u64) * (self.block_size as u64);
         let len = data as usize;
         let mut index = 0usize;

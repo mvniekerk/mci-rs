@@ -10,10 +10,10 @@ use crate::mci_card::MciCard;
 use crate::registers::csd::CsdRegister;
 use crate::registers::sd::card_status::CardStatusRegister;
 use crate::transfer::TransferTransaction;
-use embedded_hal::digital::v2::InputPin;
 use embedded_error::mci::MciError;
-use embedded_error::ImplError;
 use embedded_error::mci::MciError::UnusableCard;
+use embedded_error::ImplError;
+use embedded_hal::digital::v2::InputPin;
 
 pub const SD_MMC_BLOCK_SIZE: u32 = 512;
 
@@ -63,7 +63,8 @@ where
 
     pub fn sd_mmc_select_this_device_on_mci_and_configure_mci(&mut self) -> Result<(), MciError> {
         self.mci
-            .select_device(self.slot, self.clock, &self.bus_width, self.high_speed).map_err(|_| MciError::CouldNotSelectDevice)
+            .select_device(self.slot, self.clock, &self.bus_width, self.high_speed)
+            .map_err(|_| MciError::CouldNotSelectDevice)
     }
 
     /// Select this instance's card slot and initialize the associated driver
