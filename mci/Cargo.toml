@@ -1,6 +1,6 @@
 [package]
 name = "mci"
-version = "0.0.0"
+version = "0.1.0"
 authors = ["Michael van Niekerk <mike@pathfinderza.com>"]
 edition = "2018"
 repository = "https://github.com/mvniekerk/mci-rs"
