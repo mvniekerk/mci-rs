@@ -38,3 +38,6 @@ atsamd51 = ["rt", "atsamd-hal", "atsamd-hal/samd51", "unproven"]
 unproven = ["atsamd-hal/unproven"]
 rt = ["cortex-m-rt", "atsamd-hal/samd51j20a-rt"]
 default = ["atsamd51j20a", "sdio", "mmc"]
+
+[build]
+target = "thumbv7em-none-eabihf"
