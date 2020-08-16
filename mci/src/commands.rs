@@ -2,7 +2,7 @@ use crate::command_flags::{
     CommandFlag, MultiBlock, NoFlag, OpenDrain, SdioBlock, SdioByte, SdioWriteBlock, SdioWriteByte,
     SingleBlock, WriteMultiBlock, WriteSingleBlock,
 };
-use crate::response_type::{
+use crate::command_responses::{
     CmdR1B, CmdR1R6, CmdR2, CmdR3R4, CmdR5, CmdR7, NoResponse, Response,
 };
 
