@@ -1,6 +1,5 @@
 use crate::card_version::CardVersion::SdCard;
 use crate::card_version::SdCardVersion;
-use crate::command_arguments::flags::CommandFlag;
 use crate::command_arguments::mmc_commands::BusWidth;
 use crate::command_arguments::response_type::Response;
 use crate::command_arguments::sd_commands::cmd6::{Cmd6, Cmd6Mode};
@@ -18,6 +17,7 @@ use crate::registers::sd::switch_status::{SwitchStatusRegister, SD_SW_STATUS_FUN
 use crate::sd::sd_physical_specification::SdPhysicalSpecification;
 use bit_field::BitField;
 use embedded_hal::digital::v2::InputPin;
+use crate::flags::CommandFlag;
 
 impl<MCI, WP, DETECT> MciCard<MCI, WP, DETECT>
 where
