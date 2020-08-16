@@ -13,11 +13,11 @@ use crate::registers::ocr::{AccessMode, OcrRegister};
 use crate::registers::sd::card_status::CardStatusRegister;
 use bit_field::BitField;
 use embedded_hal::digital::v2::InputPin;
+use crate::sdmmc::SD_MMC_BLOCK_SIZE;
 
 pub const EXT_CSD_CARD_TYPE_INDEX: u32 = 196;
 pub const EXT_CSD_SEC_COUNT_INDEX: u32 = 212;
 pub const EXT_CSD_BSIZE: u32 = 512;
-pub const SD_MMC_BLOCK_SIZE: u32 = 512;
 
 impl<MCI, WP, DETECT> MciCard<MCI, WP, DETECT>
 where

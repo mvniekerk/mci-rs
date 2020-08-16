@@ -7,11 +7,12 @@ use crate::commands::{
 };
 use crate::mci::Mci;
 use crate::mci_card::MciCard;
-use crate::mmc::SD_MMC_BLOCK_SIZE;
 use crate::registers::csd::CsdRegister;
 use crate::registers::sd::card_status::CardStatusRegister;
 use crate::transfer::TransferTransaction;
 use embedded_hal::digital::v2::InputPin;
+
+pub const SD_MMC_BLOCK_SIZE: u32 = 512;
 
 impl<MCI, WP, DETECT> MciCard<MCI, WP, DETECT>
 where

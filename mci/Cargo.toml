@@ -1,7 +1,7 @@
 [package]
 name = "mci"
 version = "0.0.0"
-authors = ["Michael van Niekerk <mvniekerk@chazaqdev.com>"]
+authors = ["Michael van Niekerk <mike@pathfinderza.com>"]
 edition = "2018"
 repository = "https://github.com/mvniekerk/mci-rs"
 description = "MultiMedia Card Interface (SD, MMC, SDIO) implementation using MCI"
@@ -15,4 +15,4 @@ embedded-hal = "^0.2"
 [features]
 sdio = []
 mmc = []
-default = ["sdio", "mmc"]
+default = ["embedded-hal/unproven"]
