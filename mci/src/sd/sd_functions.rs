@@ -1,29 +1,31 @@
-use crate::mci_card::{MciCard, ocr_voltage_support, SD_MMC_TRANS_UNITS, SD_TRANS_MULTIPLIERS};
-use crate::mci::Mci;
-use embedded_hal::digital::v2::InputPin;
-use crate::commands::{SDMMC_CMD55_APP_CMD, SD_MCI_ACMD41_SD_SEND_OP_COND, Command, SD_CMD6_SWITCH_FUNC, SD_CMD8_SEND_IF_COND, SD_ACMD6_SET_BUS_WIDTH, SD_ACMD51_SEND_SCR};
-use crate::registers::ocr::OcrRegister;
-use crate::command::response_type::Response;
-use crate::command::flags::CommandFlag;
-use crate::registers::sd::switch_status::{SwitchStatusRegister, SD_SW_STATUS_FUN_GRP_RC_ERROR};
-use crate::command::sd_commands::cmd6::{Cmd6,Cmd6Mode};
-use crate::command::sd_commands::cmd8::Cmd8;
-use crate::registers::register::Register;
-use bit_field::BitField;
-use crate::registers::csd::SdCsdStructureVersion;
-use crate::registers::sd::scr::ScrRegister;
-use crate::sd::sd_physical_specification::SdPhysicalSpecification;
-use crate::card_version::SdCardVersion;
 use crate::card_version::CardVersion::SdCard;
+use crate::card_version::SdCardVersion;
+use crate::command::flags::CommandFlag;
 use crate::command::mmc_commands::BusWidth;
+use crate::command::response_type::Response;
+use crate::command::sd_commands::cmd6::{Cmd6, Cmd6Mode};
+use crate::command::sd_commands::cmd8::Cmd8;
+use crate::commands::{
+    Command, SDMMC_CMD55_APP_CMD, SD_ACMD51_SEND_SCR, SD_ACMD6_SET_BUS_WIDTH, SD_CMD6_SWITCH_FUNC,
+    SD_CMD8_SEND_IF_COND, SD_MCI_ACMD41_SD_SEND_OP_COND,
+};
+use crate::mci::Mci;
+use crate::mci_card::{ocr_voltage_support, MciCard, SD_MMC_TRANS_UNITS, SD_TRANS_MULTIPLIERS};
+use crate::registers::csd::SdCsdStructureVersion;
+use crate::registers::ocr::OcrRegister;
+use crate::registers::register::Register;
+use crate::registers::sd::scr::ScrRegister;
+use crate::registers::sd::switch_status::{SwitchStatusRegister, SD_SW_STATUS_FUN_GRP_RC_ERROR};
+use crate::sd::sd_physical_specification::SdPhysicalSpecification;
+use bit_field::BitField;
+use embedded_hal::digital::v2::InputPin;
 
 impl<MCI, WP, DETECT> MciCard<MCI, WP, DETECT>
-    where
-        MCI: Mci,
-        WP: InputPin,
-        DETECT: InputPin,
+where
+    MCI: Mci,
+    WP: InputPin,
+    DETECT: InputPin,
 {
-
     /// Ask all cards to send their operations conditions (MCI only).
     /// # Arguments
     /// * `v2` Shall be true if it is a SD card V2
@@ -56,7 +58,7 @@ impl<MCI, WP, DETECT> MciCard<MCI, WP, DETECT>
     pub fn sd_cmd6<RESPONSE: Response, FLAG: CommandFlag>(
         &mut self,
         command: Command<RESPONSE, FLAG>,
-        arg: Cmd6
+        arg: Cmd6,
     ) -> Result<SwitchStatusRegister, ()> {
         let mut buf = [0u8; 64];
         self.mci
@@ -149,7 +151,6 @@ impl<MCI, WP, DETECT> MciCard<MCI, WP, DETECT>
         }
         Ok(())
     }
-
 
     /// ACMD6 = Define the data bus width to be 4 bits
     pub fn sd_acmd6_set_data_bus_width_to_4_bits(&mut self) -> Result<(), ()> {

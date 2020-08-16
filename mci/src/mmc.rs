@@ -7,12 +7,10 @@ use crate::commands::{
     SDMMC_MCI_CMD0_GO_IDLE_STATE,
 };
 use crate::mci::Mci;
+use crate::mci_card::{ocr_voltage_support, MciCard, MMC_TRANS_MULTIPLIERS, SD_MMC_TRANS_UNITS};
 use crate::mode_index::ModeIndex;
 use crate::registers::ocr::{AccessMode, OcrRegister};
 use crate::registers::sd::card_status::CardStatusRegister;
-use crate::mci_card::{
-    ocr_voltage_support, MciCard, MMC_TRANS_MULTIPLIERS, SD_MMC_TRANS_UNITS,
-};
 use bit_field::BitField;
 use embedded_hal::digital::v2::InputPin;
 

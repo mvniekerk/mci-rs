@@ -1,5 +1,5 @@
-use bit_field::BitField;
 use crate::registers::register::Register;
+use bit_field::BitField;
 
 pub struct MciCommand {
     pub val: u32,
