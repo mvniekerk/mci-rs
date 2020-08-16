@@ -15,6 +15,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 bit_field = "~0.10"
+embedded-error = "^0.3"
 
 [dependencies.atsamd-hal]
 version = "~0.8"
@@ -27,9 +28,6 @@ optional = true
 
 [dependencies.mci]
 path = "../mci"
-
-[dependencies.embedded-error]
-git = "http://github.com/therealprof/embedded-error"
 
 [features]
 sdio = ["mci/sdio"]

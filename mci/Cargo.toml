@@ -14,10 +14,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 bit_field = "~0.10"
 embedded-hal = "^0.2"
-
-[dependencies.embedded-error]
-git = "http://github.com/therealprof/embedded-error"
-
+embedded-error = "^0.3"
 
 [features]
 sdio = []
