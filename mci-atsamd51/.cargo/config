@@ -1,1 +1,2 @@
-build.target = "thumbv7em-none-eabihf"
+[build]
+target = "thumbv7em-none-eabihf"
