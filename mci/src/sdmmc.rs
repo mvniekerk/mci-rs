@@ -1,5 +1,5 @@
 use crate::card_state::CardState;
-use crate::command_arguments::mmc_commands::BusWidth;
+use crate::command_arguments::mmc::BusWidth;
 use crate::commands::{
     SDMMC_CMD12_STOP_TRANSMISSION, SDMMC_CMD17_READ_SINGLE_BLOCK, SDMMC_CMD18_READ_MULTIPLE_BLOCK,
     SDMMC_CMD24_WRITE_BLOCK, SDMMC_CMD25_WRITE_MULTIPLE_BLOCK, SDMMC_MCI_CMD13_SEND_STATUS,

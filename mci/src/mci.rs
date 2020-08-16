@@ -1,4 +1,4 @@
-use crate::command_arguments::mmc_commands::BusWidth;
+use crate::command_arguments::mmc::BusWidth;
 
 // TODO keep + get current selected slot
 pub trait Mci {

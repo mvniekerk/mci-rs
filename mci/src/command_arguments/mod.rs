@@ -1,4 +1,4 @@
 pub mod mci_command;
-pub mod mmc_commands;
-pub mod sd_commands;
-pub mod sdio_commands;
+pub mod mmc;
+pub mod sd;
+pub mod sdio;

@@ -1,6 +1,6 @@
-use crate::command_arguments::mmc_commands::BusWidth;
-use crate::command_arguments::sdio_commands::cmd52::{Cmd52, Direction};
-use crate::command_arguments::sdio_commands::cmd53::Cmd53;
+use crate::command_arguments::mmc::BusWidth;
+use crate::command_arguments::sdio::cmd52::{Cmd52, Direction};
+use crate::command_arguments::sdio::cmd53::Cmd53;
 use crate::commands::{
     SDIO_CMD52_IO_RW_DIRECT, SDIO_CMD53_IO_R_BLOCK_EXTENDED, SDIO_CMD53_IO_W_BLOCK_EXTENDED,
     SDIO_CMD5_SEND_OP_COND,

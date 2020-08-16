@@ -1,7 +1,7 @@
 use crate::card_state::CardState;
 use crate::card_type::CardType;
 use crate::card_version::CardVersion;
-use crate::command_arguments::mmc_commands::BusWidth;
+use crate::command_arguments::mmc::BusWidth;
 use crate::mci::Mci;
 use crate::registers::csd::CsdRegister;
 use crate::registers::ocr::OcrRegister;
