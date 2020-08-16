@@ -28,6 +28,7 @@ optional = true
 
 [dependencies.mci]
 path = "../mci"
+version = "^0.1"
 
 [features]
 sdio = ["mci/sdio"]
