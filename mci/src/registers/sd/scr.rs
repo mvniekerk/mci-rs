@@ -1,4 +1,4 @@
-use crate::registers::register::RegisterAddress;
+use crate::registers::register_address::RegisterAddress;
 use crate::sd::sd_bus_width::SdBusWidth;
 use crate::sd::sd_physical_specification::SdPhysicalSpecification;
 use crate::sd::sd_security::SdSecurity;

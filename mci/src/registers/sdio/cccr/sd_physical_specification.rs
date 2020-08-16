@@ -1,4 +1,4 @@
-use crate::registers::register::RegisterAddress;
+use crate::registers::register_address::RegisterAddress;
 use crate::sd::sd_physical_specification::SdPhysicalSpecification;
 use bit_field::BitField;
 

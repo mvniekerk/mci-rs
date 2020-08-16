@@ -1,4 +1,4 @@
-use crate::registers::register::RegisterAddress;
+use crate::registers::register_address::RegisterAddress;
 
 pub struct ExtendedInterfaceCodeRegister {
     pub val: u8,

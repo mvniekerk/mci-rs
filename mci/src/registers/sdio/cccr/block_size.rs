@@ -1,4 +1,4 @@
-use crate::registers::register::RegisterAddress;
+use crate::registers::register_address::RegisterAddress;
 use bit_field::BitField;
 
 /// FN0 block size, LSB first

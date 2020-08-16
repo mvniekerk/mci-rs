@@ -1,4 +1,4 @@
-use crate::registers::register::RegisterAddress;
+use crate::registers::register_address::RegisterAddress;
 use bit_field::BitField;
 
 /// Address pointer to function CIS (3 bytes, LSB first

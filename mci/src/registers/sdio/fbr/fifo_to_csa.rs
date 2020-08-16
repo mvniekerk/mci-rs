@@ -1,4 +1,4 @@
-use crate::registers::register::RegisterAddress;
+use crate::registers::register_address::RegisterAddress;
 
 /// Read/Write fifo to CSA
 pub struct FifoToCsaReadWriteRegister {
