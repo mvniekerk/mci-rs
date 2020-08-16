@@ -1,8 +1,8 @@
-use crate::command::flags::{
+use crate::command_arguments::flags::{
     CommandFlag, MultiBlock, NoFlag, OpenDrain, SdioBlock, SdioByte, SdioWriteBlock, SdioWriteByte,
     SingleBlock, WriteMultiBlock, WriteSingleBlock,
 };
-use crate::command::response_type::{
+use crate::command_arguments::response_type::{
     CmdR1B, CmdR1R6, CmdR2, CmdR3R4, CmdR5, CmdR7, NoResponse, Response,
 };
 

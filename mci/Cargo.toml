@@ -5,8 +5,9 @@ authors = ["Michael van Niekerk <mike@pathfinderza.com>"]
 edition = "2018"
 repository = "https://github.com/mvniekerk/mci-rs"
 description = "MultiMedia Card Interface (SD, MMC, SDIO) implementation using MCI"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+categories = [
+    "embedded-hal", "hal", "mci", "sd", "sdmmc", "mmc", "sdio", "embedded", "no-std"
+]
 
 [dependencies]
 bit_field = "~0.10"

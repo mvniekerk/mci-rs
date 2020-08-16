@@ -1,10 +1,10 @@
 use crate::card_version::CardVersion::SdCard;
 use crate::card_version::SdCardVersion;
-use crate::command::flags::CommandFlag;
-use crate::command::mmc_commands::BusWidth;
-use crate::command::response_type::Response;
-use crate::command::sd_commands::cmd6::{Cmd6, Cmd6Mode};
-use crate::command::sd_commands::cmd8::Cmd8;
+use crate::command_arguments::flags::CommandFlag;
+use crate::command_arguments::mmc_commands::BusWidth;
+use crate::command_arguments::response_type::Response;
+use crate::command_arguments::sd_commands::cmd6::{Cmd6, Cmd6Mode};
+use crate::command_arguments::sd_commands::cmd8::Cmd8;
 use crate::commands::{
     Command, SDMMC_CMD55_APP_CMD, SD_ACMD51_SEND_SCR, SD_ACMD6_SET_BUS_WIDTH, SD_CMD6_SWITCH_FUNC,
     SD_CMD8_SEND_IF_COND, SD_MCI_ACMD41_SD_SEND_OP_COND,

@@ -3,7 +3,7 @@
 pub mod card_state;
 pub mod card_type;
 pub mod card_version;
-pub mod command;
+pub mod command_arguments;
 pub mod commands;
 pub mod dummy_input_pin;
 pub mod error;

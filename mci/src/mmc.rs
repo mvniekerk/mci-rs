@@ -1,6 +1,6 @@
 use crate::card_version::CardVersion::{Mmc, Unknown};
 use crate::card_version::MmcVersion;
-use crate::command::mmc_commands::{Access, BusWidth, Cmd6};
+use crate::command_arguments::mmc_commands::{Access, BusWidth, Cmd6};
 use crate::commands::{
     MMC_CMD3_SET_RELATIVE_ADDR, MMC_CMD6_SWITCH, MMC_CMD8_SEND_EXT_CSD, MMC_MCI_CMD1_SEND_OP_COND,
     SDMMC_CMD16_SET_BLOCKLEN, SDMMC_CMD2_ALL_SEND_CID, SDMMC_CMD7_SELECT_CARD_CMD,

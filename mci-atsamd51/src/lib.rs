@@ -1,8 +1,8 @@
 #![no_std]
 use atsamd_hal::target_device::SDHC0;
 use bit_field::BitField;
-use mci::command::mci_command::MciCommand;
-use mci::command::mmc_commands::BusWidth;
+use mci::command_arguments::mci_command::MciCommand;
+use mci::command_arguments::mmc_commands::BusWidth;
 use mci::mci::Mci;
 
 pub struct AtsamdMci {

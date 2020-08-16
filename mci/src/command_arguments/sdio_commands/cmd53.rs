@@ -1,4 +1,4 @@
-use crate::command::sdio_commands::cmd52::Direction;
+use crate::command_arguments::sdio_commands::cmd52::Direction;
 use bit_field::BitField;
 
 #[derive(Default)]
