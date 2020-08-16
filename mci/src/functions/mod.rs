@@ -1,6 +1,6 @@
-pub mod sd_functions;
-mod sdmmc_functions;
+pub mod sd;
+mod sdmmc;
 #[cfg(feature = "mmc")]
-pub mod mmc_functions;
+pub mod mmc;
 #[cfg(feature = "sdio")]
-pub mod sdio_functions;
+pub mod sdio;
