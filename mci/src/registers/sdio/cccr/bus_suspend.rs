@@ -5,11 +5,7 @@ pub struct BusSuspendRegister {
     pub val: u8,
 }
 
-impl Register<u8> for BusSuspendRegister {
-    fn value(&self) -> u8 {
-        self.val
-    }
-
+impl Register for BusSuspendRegister {
     fn address() -> u8 {
         0x0C
     }

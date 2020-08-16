@@ -5,11 +5,7 @@ pub struct CardCapabilityRegister {
     pub val: u8,
 }
 
-impl Register<u8> for CardCapabilityRegister {
-    fn value(&self) -> u8 {
-        self.val
-    }
-
+impl Register for CardCapabilityRegister {
     fn address() -> u8 {
         0x08
     }

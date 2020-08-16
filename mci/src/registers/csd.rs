@@ -6,11 +6,7 @@ pub struct CsdRegister {
     pub val: [u32; 4],
 }
 
-impl Register<[u32; 4]> for CsdRegister {
-    fn value(&self) -> [u32; 4] {
-        self.val
-    }
-
+impl Register for CsdRegister {
     fn address() -> u8 {
         0x10u8
     }

@@ -5,11 +5,7 @@ pub struct IoAbortRegister {
     pub val: u8,
 }
 
-impl Register<u8> for IoAbortRegister {
-    fn value(&self) -> u8 {
-        self.val
-    }
-
+impl Register for IoAbortRegister {
     fn address() -> u8 {
         0x06u8
     }

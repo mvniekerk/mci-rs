@@ -24,11 +24,7 @@ impl PowerControlRegister {
     }
 }
 
-impl Register<u8> for PowerControlRegister {
-    fn value(&self) -> u8 {
-        self.val
-    }
-
+impl Register for PowerControlRegister {
     fn address() -> u8 {
         0x2
     }

@@ -6,17 +6,6 @@ pub struct OcrRegister {
     pub val: u32,
 }
 
-impl Register<u32> for OcrRegister {
-    #[inline(always)]
-    fn value(&self) -> u32 {
-        self.val
-    }
-
-    fn address() -> u8 {
-        unimplemented!()
-    }
-}
-
 #[derive(PartialEq)]
 pub enum AccessMode {
     /// Byte access mode

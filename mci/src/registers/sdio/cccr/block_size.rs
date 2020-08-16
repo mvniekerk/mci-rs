@@ -24,11 +24,7 @@ impl BlockSize {
     }
 }
 
-impl Register<u16> for BlockSize {
-    fn value(&self) -> u16 {
-        self.val
-    }
-
+impl Register for BlockSize {
     fn address() -> u8 {
         0x10u8
     }

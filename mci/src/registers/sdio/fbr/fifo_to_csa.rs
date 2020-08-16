@@ -5,11 +5,7 @@ pub struct FifoToCsaReadWriteRegister {
     pub val: u8,
 }
 
-impl Register<u8> for FifoToCsaReadWriteRegister {
-    fn value(&self) -> u8 {
-        self.val
-    }
-
+impl Register for FifoToCsaReadWriteRegister {
     fn address() -> u8 {
         0xF
     }

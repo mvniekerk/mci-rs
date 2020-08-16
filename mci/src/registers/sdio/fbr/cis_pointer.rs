@@ -32,11 +32,7 @@ impl CisPointerRegister {
     }
 }
 
-impl Register<u32> for CisPointerRegister {
-    fn value(&self) -> u32 {
-        self.val
-    }
-
+impl Register for CisPointerRegister {
     fn address() -> u8 {
         0x9
     }

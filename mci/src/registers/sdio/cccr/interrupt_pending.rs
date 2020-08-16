@@ -5,11 +5,7 @@ pub struct InterruptPendingRegister {
     pub val: u8,
 }
 
-impl Register<u8> for InterruptPendingRegister {
-    fn value(&self) -> u8 {
-        self.val
-    }
-
+impl Register for InterruptPendingRegister {
     fn address() -> u8 {
         0x05
     }

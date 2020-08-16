@@ -42,7 +42,7 @@ where
             let mut arg = ocr_voltage_support();
             arg.val.set_bit(30, v2); // SD_ACMD41_HCS ACMD41 High Capacity Support
             self.mci
-                .send_command(SD_MCI_ACMD41_SD_SEND_OP_COND.into(), arg.value())?;
+                .send_command(SD_MCI_ACMD41_SD_SEND_OP_COND.into(), arg.val)?;
             let resp = self.mci.get_response();
             let resp = OcrRegister { val: resp };
             if resp.card_powered_up_status() {
@@ -62,7 +62,7 @@ where
     ) -> Result<SwitchStatusRegister, ()> {
         let mut buf = [0u8; 64];
         self.mci
-            .adtc_start(command.into(), arg.value(), 64, 1, true)?;
+            .adtc_start(command.into(), arg.val, 64, 1, true)?;
         self.mci.read_blocks(&mut buf, 1)?;
         self.mci.wait_until_read_finished()?;
 

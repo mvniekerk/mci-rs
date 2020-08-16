@@ -35,16 +35,6 @@ pub struct CardStatusRegister {
     pub val: u32,
 }
 
-impl Register<u32> for CardStatusRegister {
-    fn value(&self) -> u32 {
-        self.val
-    }
-
-    fn address() -> u8 {
-        unimplemented!()
-    }
-}
-
 impl CardStatusRegister {
     pub fn set_app_command(&mut self, set: bool) {
         self.val.set_bit(5, set);

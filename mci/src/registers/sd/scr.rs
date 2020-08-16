@@ -9,16 +9,6 @@ pub struct ScrRegister {
     pub val: u64,
 }
 
-impl Register<u64> for ScrRegister {
-    fn value(&self) -> u64 {
-        self.val
-    }
-
-    fn address() -> u8 {
-        unimplemented!()
-    }
-}
-
 impl From<[u8; 8]> for ScrRegister {
     fn from(val: [u8; 8]) -> Self {
         ScrRegister {

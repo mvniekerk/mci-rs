@@ -5,11 +5,7 @@ pub struct IoEnableRegister {
     pub val: u8,
 }
 
-impl Register<u8> for IoEnableRegister {
-    fn value(&self) -> u8 {
-        self.val
-    }
-
+impl Register for IoEnableRegister {
     fn address() -> u8 {
         0x02u8
     }

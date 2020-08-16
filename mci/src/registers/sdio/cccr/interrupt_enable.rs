@@ -5,11 +5,7 @@ pub struct InterruptEnableRegister {
     pub val: u8,
 }
 
-impl Register<u8> for InterruptEnableRegister {
-    fn value(&self) -> u8 {
-        self.val
-    }
-
+impl Register for InterruptEnableRegister {
     fn address() -> u8 {
         0x04u8
     }

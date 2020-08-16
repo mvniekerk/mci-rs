@@ -32,11 +32,7 @@ impl CsaPointerRegister {
     }
 }
 
-impl Register<u32> for CsaPointerRegister {
-    fn value(&self) -> u32 {
-        self.val
-    }
-
+impl Register for CsaPointerRegister {
     fn address() -> u8 {
         0x9
     }

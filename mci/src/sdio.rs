@@ -43,9 +43,9 @@ where
         }
 
         let arg = OcrRegister {
-            val: resp.val & ocr_voltage_support().value(),
+            val: resp.val & ocr_voltage_support().val,
         };
-        let arg = arg.value();
+        let arg = arg.val;
 
         // Wait until card is ready
         // Timeout 1s = 400KHz / ((6+4)*8) cycles = 5000 retry
@@ -92,7 +92,7 @@ where
             .set_read_after_write(read_after_write)
             .set_register_address(register_address);
         self.mci
-            .send_command(SDIO_CMD52_IO_RW_DIRECT.into(), arg.value())?;
+            .send_command(SDIO_CMD52_IO_RW_DIRECT.into(), arg.val)?;
         let resp = self.mci.get_response() as u8;
         Ok(resp)
     }
@@ -211,7 +211,7 @@ where
             FunctionSelection::FunctionCia0,
             BusInterfaceControlRegister::address() as u32,
             true,
-            bus_ctrl.value(),
+            bus_ctrl.val,
         )?;
         self.bus_width = BusWidth::_4BIT;
         Ok(BusWidth::_4BIT)
@@ -248,7 +248,7 @@ where
             FunctionSelection::FunctionCia0,
             HighSpeedRegister::address() as u32,
             true,
-            high_speed.value(),
+            high_speed.val,
         )?;
         self.high_speed = true;
         self.clock *= 2;

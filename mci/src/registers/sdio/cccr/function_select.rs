@@ -35,11 +35,7 @@ pub struct FunctionSelectionRegister {
     pub val: u8,
 }
 
-impl Register<u8> for FunctionSelectionRegister {
-    fn value(&self) -> u8 {
-        self.val
-    }
-
+impl Register for FunctionSelectionRegister {
     fn address() -> u8 {
         0x0Du8
     }

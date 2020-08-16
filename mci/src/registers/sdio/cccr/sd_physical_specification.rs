@@ -6,11 +6,7 @@ pub struct SdPhysicalSpecificationRegister {
     pub val: u8,
 }
 
-impl Register<u8> for SdPhysicalSpecificationRegister {
-    fn value(&self) -> u8 {
-        self.val
-    }
-
+impl Register for SdPhysicalSpecificationRegister {
     fn address() -> u8 {
         0x01u8
     }

@@ -1,4 +1,3 @@
-pub trait Register<T> {
-    fn value(&self) -> T;
+pub trait Register {
     fn address() -> u8;
 }

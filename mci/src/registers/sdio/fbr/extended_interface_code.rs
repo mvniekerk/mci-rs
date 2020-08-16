@@ -4,11 +4,7 @@ pub struct ExtendedInterfaceCodeRegister {
     pub val: u8,
 }
 
-impl Register<u8> for ExtendedInterfaceCodeRegister {
-    fn value(&self) -> u8 {
-        self.val
-    }
-
+impl Register for ExtendedInterfaceCodeRegister {
     fn address() -> u8 {
         0x1
     }

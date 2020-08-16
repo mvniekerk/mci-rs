@@ -7,16 +7,6 @@ pub struct SwitchStatusRegister {
     pub val: [u16; 32],
 }
 
-impl Register<[u16; 32]> for SwitchStatusRegister {
-    fn value(&self) -> [u16; 32] {
-        self.val
-    }
-
-    fn address() -> u8 {
-        unimplemented!()
-    }
-}
-
 impl From<[u8; 64]> for SwitchStatusRegister {
     fn from(val: [u8; 64]) -> Self {
         let mut v = [0u16; 32];
