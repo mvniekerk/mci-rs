@@ -1,7 +1,7 @@
 use crate::card_version::CardVersion::SdCard;
 use crate::card_version::SdCardVersion;
 use crate::command_arguments::mmc_commands::BusWidth;
-use crate::command_arguments::response_type::Response;
+use crate::response_type::Response;
 use crate::command_arguments::sd_commands::cmd6::{Cmd6, Cmd6Mode};
 use crate::command_arguments::sd_commands::cmd8::Cmd8;
 use crate::commands::{
