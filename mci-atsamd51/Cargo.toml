@@ -1,6 +1,6 @@
 [package]
 name = "mci-atsamd51"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Michael van Niekerk <mike@pathfinderza.com>"]
 edition = "2018"
 repository = "https://github.com/mvniekerk/mci-rs"
@@ -16,6 +16,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 bit_field = "~0.10"
 embedded-error = "^0.3"
+embedded-sdmmc = "0.3.0"
 
 [dependencies.atsamd-hal]
 version = "~0.8"
@@ -28,13 +29,15 @@ optional = true
 
 [dependencies.mci]
 path = "../mci"
-version = "^0.1"
+version = "^0.2"
 
 [features]
 sdio = ["mci/sdio"]
 mmc = ["mci/mmc"]
+fat32 = ["mci/fat32"]
 atsamd51j20a = ["atsamd51", "atsamd-hal/samd51j20a"]
 atsamd51 = ["rt", "atsamd-hal", "atsamd-hal/samd51", "unproven"]
 unproven = ["atsamd-hal/unproven"]
 rt = ["cortex-m-rt", "atsamd-hal/samd51j20a-rt"]
+#default = ["atsamd51j20a", "sdio", "mmc", "fat32"]
 default = ["atsamd51j20a", "sdio", "mmc"]
