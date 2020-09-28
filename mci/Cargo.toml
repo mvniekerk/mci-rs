@@ -1,6 +1,6 @@
 [package]
 name = "mci"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Michael van Niekerk <mike@pathfinderza.com>"]
 edition = "2018"
 repository = "https://github.com/mvniekerk/mci-rs"
@@ -15,8 +15,10 @@ license = "MIT OR Apache-2.0"
 bit_field = "~0.10"
 embedded-hal = "^0.2"
 embedded-error = "^0.3"
+embedded-sdmmc = "0.3.0"
 
 [features]
 sdio = []
 mmc = []
+fat32 = []
 default = ["embedded-hal/unproven"]

@@ -18,3 +18,5 @@ pub mod sd;
 #[cfg(feature = "sdio")]
 pub mod sdio_state;
 pub mod transfer;
+#[cfg(feature = "fat32")]
+pub mod fat32;

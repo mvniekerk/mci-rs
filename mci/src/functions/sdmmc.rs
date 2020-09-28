@@ -37,7 +37,7 @@ where
     /// CMD13: Get status register.
     /// Waits for the clear of the busy flag
     pub fn sd_mmc_cmd13_get_status_and_wait_for_ready_for_data_flag(
-        &mut self,
+        &self,
     ) -> Result<CardStatusRegister, MciError> {
         let mut status = CardStatusRegister::default();
         // TODO maybe proper timeout
@@ -61,7 +61,7 @@ where
         self.mci.deselect_device(self.slot)
     }
 
-    pub fn sd_mmc_select_this_device_on_mci_and_configure_mci(&mut self) -> Result<(), MciError> {
+    pub fn sd_mmc_select_this_device_on_mci_and_configure_mci(&self) -> Result<(), MciError> {
         self.mci
             .select_device(self.slot, self.clock, &self.bus_width, self.high_speed)
             .map_err(|_| MciError::CouldNotSelectDevice)
@@ -102,7 +102,7 @@ where
     }
 
     pub fn sd_mmc_init_read_blocks(
-        &mut self,
+        &self,
         start: u32,
         blocks_amount: u16,
     ) -> Result<TransferTransaction, MciError> {
