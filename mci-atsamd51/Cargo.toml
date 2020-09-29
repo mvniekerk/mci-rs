@@ -15,7 +15,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 bit_field = "~0.10"
-embedded-error = "^0.3"
+embedded-error = "^0.6"
 embedded-sdmmc = "0.3.0"
 
 [dependencies.atsamd-hal]
@@ -39,5 +39,5 @@ atsamd51j20a = ["atsamd51", "atsamd-hal/samd51j20a"]
 atsamd51 = ["rt", "atsamd-hal", "atsamd-hal/samd51", "unproven"]
 unproven = ["atsamd-hal/unproven"]
 rt = ["cortex-m-rt", "atsamd-hal/samd51j20a-rt"]
-#default = ["atsamd51j20a", "sdio", "mmc", "fat32"]
-default = ["atsamd51j20a", "sdio", "mmc"]
+default = ["atsamd51j20a", "sdio", "mmc", "fat32"]
+#default = ["atsamd51j20a", "sdio", "mmc"]
