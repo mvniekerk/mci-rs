@@ -1,6 +1,7 @@
 #![no_std]
 use atsamd_hal::target_device::SDHC0;
 use bit_field::BitField;
+use core::cell::Cell;
 use core::hint::unreachable_unchecked;
 use embedded_error::mci::CommandOrDataError;
 use embedded_error::mci::MciError;
@@ -8,7 +9,6 @@ use embedded_error::ImplError;
 use mci::command_arguments::mci_command::MciCommand;
 use mci::command_arguments::mmc::BusWidth;
 use mci::mci::Mci;
-use core::cell::Cell;
 
 pub struct AtsamdMci {
     sdhc: SDHC0,
@@ -100,12 +100,7 @@ impl AtsamdMci {
     }
 
     /// Send a command
-    pub fn send_command_execute(
-        &self,
-        mut cmdr: u16,
-        cmd: u32,
-        arg: u32,
-    ) -> Result<(), MciError> {
+    pub fn send_command_execute(&self, mut cmdr: u16, cmd: u32, arg: u32) -> Result<(), MciError> {
         cmdr.set_bits(8..16, cmd as u16);
         let cmd: MciCommand = cmd.into();
 
@@ -403,12 +398,14 @@ impl Mci for AtsamdMci {
     }
 
     fn read_word(&self) -> Result<(u32, u8), MciError> {
-        let nbytes: u8 =
-            if ((self.block_size.get() as u64) * (self.block_amount.get() as u64)) - self.trans_pos.get() > 4 {
-                (self.block_size.get() % 4) as u8
-            } else {
-                4
-            };
+        let nbytes: u8 = if ((self.block_size.get() as u64) * (self.block_amount.get() as u64))
+            - self.trans_pos.get()
+            > 4
+        {
+            (self.block_size.get() % 4) as u8
+        } else {
+            4
+        };
 
         if self.trans_pos.get() % (self.block_size.get() as u64) == 0 {
             self.loop_or_on_eistr_err(|f| f.sdhc.nistr().read().brdrdy().bit_is_set())?;
@@ -425,7 +422,8 @@ impl Mci for AtsamdMci {
 
         self.trans_pos.set(self.trans_pos.get() + (nbytes as u64));
 
-        if (self.block_size.get() as u64) * (self.block_amount.get() as u64) > self.trans_pos.get() {
+        if (self.block_size.get() as u64) * (self.block_amount.get() as u64) > self.trans_pos.get()
+        {
             return Ok((val, nbytes));
         }
 
@@ -445,7 +443,8 @@ impl Mci for AtsamdMci {
         self.sdhc.bdpr.write(|w| unsafe { w.bits(val) });
         self.trans_pos.set(self.trans_pos.get() + nbytes);
 
-        if (self.block_size.get() as u64) * (self.block_amount.get() as u64) > self.trans_pos.get() {
+        if (self.block_size.get() as u64) * (self.block_amount.get() as u64) > self.trans_pos.get()
+        {
             return Ok(true);
         }
 
@@ -455,11 +454,7 @@ impl Mci for AtsamdMci {
         Ok(true)
     }
 
-    fn read_blocks(
-        &self,
-        destination: &mut [u8],
-        number_of_blocks: u16,
-    ) -> Result<bool, MciError> {
+    fn read_blocks(&self, destination: &mut [u8], number_of_blocks: u16) -> Result<bool, MciError> {
         let mut data = (number_of_blocks as u64) * (self.block_size.get() as u64);
         let len = data as usize;
         let mut index = 0usize;

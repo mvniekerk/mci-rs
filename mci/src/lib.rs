@@ -9,6 +9,8 @@ pub mod command_responses;
 pub mod commands;
 pub mod dummy_input_pin;
 pub mod error;
+#[cfg(feature = "fat32")]
+pub mod fat32;
 pub mod functions;
 pub mod mci;
 pub mod mci_card;
@@ -18,5 +20,3 @@ pub mod sd;
 #[cfg(feature = "sdio")]
 pub mod sdio_state;
 pub mod transfer;
-#[cfg(feature = "fat32")]
-pub mod fat32;

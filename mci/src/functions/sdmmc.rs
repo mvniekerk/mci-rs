@@ -131,7 +131,7 @@ where
     }
 
     pub fn sd_mmc_start_read_blocks(
-        &mut self,
+        &self,
         transaction: &mut TransferTransaction,
         destination: &mut [u8],
         amount_of_blocks: u16,
@@ -145,7 +145,7 @@ where
     }
 
     pub fn sd_mmc_wait_end_of_read_blocks(
-        &mut self,
+        &self,
         abort: bool,
         transaction: &mut TransferTransaction,
     ) -> Result<(), MciError> {
@@ -176,7 +176,7 @@ where
     }
 
     pub fn sd_mmc_init_write_blocks(
-        &mut self,
+        &self,
         start: u32,
         blocks_amount: u16,
     ) -> Result<TransferTransaction, MciError> {
@@ -216,7 +216,7 @@ where
     }
 
     pub fn sd_mmc_start_write_blocks(
-        &mut self,
+        &self,
         transaction: &mut TransferTransaction,
         data: &[u8],
         blocks_amount: u16,
@@ -230,7 +230,7 @@ where
     }
 
     pub fn sd_mmc_wait_end_of_write_blocks(
-        &mut self,
+        &self,
         abort: bool,
         transaction: &mut TransferTransaction,
     ) -> Result<(), MciError> {

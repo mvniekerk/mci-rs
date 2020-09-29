@@ -1,3 +1,4 @@
+#[derive(Debug, Copy, Clone)]
 pub enum SdMmcError {
     InitOngoing = 1,
     NoCard = 2,
